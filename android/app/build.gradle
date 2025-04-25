@@ -7,16 +7,17 @@ plugins {
 
 android {
     namespace = "com.example.clinic_appointment_system_project"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 34
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
+        coreLibraryDesugaringEnabled true 
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
@@ -24,8 +25,8 @@ android {
         applicationId = "com.example.clinic_appointment_system_project"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 23
+        targetSdk = 33
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -39,10 +40,11 @@ android {
     }
 }
 
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3' // Correct placement
+}
+
 flutter {
     source = "../.."
 }
 
-dependencies {
-    implementation platform('com.google.firebase:firebase-bom:33.12.0')
-}
