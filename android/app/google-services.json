@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "852502321890",
+    "project_id": "clinic-appointment-syste-2e668",
+    "storage_bucket": "clinic-appointment-syste-2e668.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852502321890:android:40721004b44e8f700a9cbb",
+        "android_client_info": {
+          "package_name": "com.example.clinic_appointment_system_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDU_kxzeMJYbUUEk6nQrLsgdmw8My8SLIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
