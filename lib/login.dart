@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'adminMainPage.dart';
 import 'mainpage.dart';
 import 'signup.dart';
 
@@ -37,12 +38,12 @@ class _LoginPageState extends State<LoginPage> {
 
         if (storedPassword == password) {
           // Navigate to the admin page
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => AdminMainPage(superadminId: superadminId, adminId: null),
-          //   ),
-          // );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminMainPage(superadminId: superadminId, adminId: null),
+            ),
+          );
           return; 
         } else {
           _showErrorDialog('Incorrect password');
@@ -63,12 +64,12 @@ class _LoginPageState extends State<LoginPage> {
 
         if (storedPassword == password) {
           // Navigate to the admin page
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => AdminMainPage(superadminId: null, adminId: adminId),
-          //   ),
-          // );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminMainPage(superadminId: null, adminId: adminId),
+            ),
+          );
           return; 
         } else {
           _showErrorDialog('Incorrect password');

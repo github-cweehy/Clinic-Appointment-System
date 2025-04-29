@@ -1,9 +1,12 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'help.dart';
 import 'login.dart';
+import 'selectdoctor.dart';
+import 'userprofile.dart';
 
 class MainPage extends StatefulWidget {
   final String userId;
@@ -51,34 +54,6 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  void showAppointmentDialog(BuildContext context) {
-    showDialog(
-      context: context, 
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.blue,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // buildAppointmentOption("Specialist"),
-              // buildAppointmentOption("Normal"),
-              Text("Sample")
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget buildAppointmentOption (String title) {
-    return GestureDetector(
-      onTap: () {},
-    );
-  }
-
   Widget build (BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -124,12 +99,12 @@ class _MainPageState extends State<MainPage> {
                 if (value == 'Logout') {
                   _logout(context);
                 } else if (value == 'Profile') {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => UserProfilePage(userId: widget.userId),
-                  //   ),
-                  // );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfilePage(userId: widget.userId),
+                    ),
+                  );
                 }
               },
             ),
@@ -201,56 +176,20 @@ class _MainPageState extends State<MainPage> {
               // },
             ),
             ListTile(
-              leading: Icon(Icons.local_hospital_rounded, color: Colors.blue),
-              title: Text('Check Up', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => CheckUpPage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
-            ),
-            ListTile(
-              leading: Icon(Icons.medical_services_outlined, color: Colors.blue),
-              title: Text('Check Up History', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => CheckUpHistoryPage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
-            ),
-            ListTile(
-              leading: Icon(Icons.celebration_rounded, color: Colors.blue),
-              title: Text('Your Rewards', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => FreeCheckUpRewardsPage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
-            ),
-            ListTile(
               leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
               title: Text('Help Center', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => HelpPage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HelpPage(userId: widget.userId),
+                  ),
+                );
+              },
             ),
           ],
         ),
-      ),
+      ),  
       body: Padding(
         padding: const EdgeInsets.all(18.0),
         child: SingleChildScrollView(
@@ -275,7 +214,16 @@ class _MainPageState extends State<MainPage> {
               //         },
               //       ),
               GestureDetector(
-                onTap: () => showAppointmentDialog(context),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SelectDoctor(
+                        userId: widget.userId,
+                      ),
+                    ),
+                  );
+                },
                 child: Container(
                   width: double.infinity,
                   padding: EdgeInsets.all(20),
