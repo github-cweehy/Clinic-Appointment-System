@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'favourite.dart';
 import 'help.dart';
 import 'login.dart';
 import 'selectdoctor.dart';
@@ -166,14 +167,14 @@ class _MainPageState extends State<MainPage> {
             ListTile(
               leading: Icon(Icons.favorite, color: Colors.blue),
               title: Text('Favorite', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => FavouritePage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FavouritePage(userId: widget.userId),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
@@ -215,11 +216,40 @@ class _MainPageState extends State<MainPage> {
               //       ),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SelectDoctor(
-                        userId: widget.userId,
+                  showModalBottomSheet(
+                    context: context,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (context) => Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: Icon(Icons.local_hospital),
+                            title: Text('Select Doctor'),
+                            onTap: () {
+                              Navigator.pop(context); // Close the sheet
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SelectDoctor(userId: widget.userId),
+                                ),
+                              );
+                            },
+                          ),
+                          Divider(),
+                          ListTile(
+                            leading: Icon(Icons.access_time),
+                            title: Text('Select Time'),
+                            onTap: () {
+                              Navigator.pop(context); // Close the sheet
+                              // Navigate to your SelectTime page here:
+                              // Navigator.push(context, MaterialPageRoute(builder: (_) => SelectTime(userId: widget.userId)));
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );

@@ -351,14 +351,18 @@ class _UserHelpPage extends State<UserHelpPage> {
               leading: const Icon(Icons.history, color: Colors.blue,),
               title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ManageAccountPage(
-                      superadminId: widget.superadminId,
-                      adminId: widget.adminId,),
-                  ),
-                );
+                if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Access Denied: Superadmin Only!')),
+                  );
+                }
               },
             ),
             ListTile(
