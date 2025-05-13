@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'appointmentHistory.dart';
+import 'appointmentslot.dart';
 import 'help.dart';
 import 'mainpage.dart';
 import 'userprofile.dart';
@@ -156,7 +158,7 @@ class _FavouritePageState extends State<FavouritePage> {
                 ],
               ),
             ),
-                        ListTile(
+            ListTile(
               leading: Icon(Icons.home, color: Colors.blue),
               title: Text('Home Page', style: TextStyle(color: Colors.blue)),
               onTap: () {
@@ -173,14 +175,14 @@ class _FavouritePageState extends State<FavouritePage> {
             ListTile(
               leading: Icon(Icons.history, color: Colors.blue,),
               title: Text('Appointment History', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => AppointmentHistory(userId: widget.userId),
-              //     ),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HistoryPage(userId: widget.userId),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.favorite, color: Colors.blue),
@@ -205,7 +207,7 @@ class _FavouritePageState extends State<FavouritePage> {
                   ),
                 );
               },
-            ),          
+            ),        
           ],
         ),
       ),
@@ -236,136 +238,88 @@ class _FavouritePageState extends State<FavouritePage> {
               final docId = doc.id;
 
               return Card(
-                margin: EdgeInsets.all(10),
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 3,
                 child: Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.person, color: Colors.blue),
-                          SizedBox(width: 10),
-                          Text(
-                            'Dr. ${favourite['first_name']} ${favourite['last_name']}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                          Icon(Icons.person_pin, size: 32, color: Colors.blue),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Dr. ${favourite['first_name']} ${favourite['last_name']}',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ),
-                          SizedBox(width: 230),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.email_outlined, color: Colors.blue),
-                            SizedBox(width: 10),
-                            Text(
-                              favourite['email'], 
-                              style: TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.phone_iphone, color: Colors.blue),
-                            SizedBox(width: 10),
-                            Text(
-                              favourite['phone_number'], 
-                              style: TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            // try {
-                            //   // Create a new appointment record in Firestore
-                            //   DocumentReference newParkingDoc = await FirebaseFirestore.instance
-                            //       .collection('appointment history')
-                            //       .add({
-                            //     'userId': widget.userId,
-                            //     'doctor': "${favourite['first_name']} ${favourite['last_name']}",
-                            //     'email': favourite['email'] ?? 'N/A',
-                            //     'phone_number': favourite['phone_number'],
-                            //     'status': 'temporary',
-                            //   });
-
-                            //   // Navigate to AddParkingPage with the newly created parking record
-                            //   // Navigator.push(
-                            //   //   context,
-                            //   //   MaterialPageRoute(
-                            //   //     builder: (context) => AppointmentSlotPage(
-                            //   //       // doctorData: data,
-                            //   //       // usreId: widget.userId
-                            //   //     ),
-                            //   //   ),
-                            //   // );
-                            // } catch (e) {
-                            //   print("Error adding appointment record: $e");
-                            //   ScaffoldMessenger.of(context).showSnackBar(
-                            //     SnackBar(content: Text('Error adding appointment record. Please try again.')),
-                            //   );
-                            // }
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add, color: Colors.white),
-                              Text(
+                        ],
+                      ),
+                      SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(Icons.email_outlined, size: 20, color: Colors.blue),
+                          SizedBox(width: 10),
+                          Text(favourite['email'], style: TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.phone, size: 20, color: Colors.blue),
+                          SizedBox(width: 10),
+                          Text(favourite['phone_number'], style: TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Appointmentslot(
+                                      userId: widget.userId,
+                                      doctorName:
+                                          'Dr. ${favourite['first_name']} ${favourite['last_name']}',
+                                      doctorId: favourite['doctor_id'] ?? docId,
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.calendar_month, color: Colors.white),
+                              label: Text(
                                 "Book Appointment",
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.white,
+                                  color: Colors.white
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            removeFavourite(docId);
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.delete_outline, color: Colors.white),
-                              Text(
-                                "Remove",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.white,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          SizedBox(width: 10),
+                          IconButton(
+                            onPressed: () => removeFavourite(docId),
+                            icon: Icon(Icons.delete_outline, color: Colors.red),
+                            tooltip: "Remove from Favorites",
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
+              );
           },
         );
       },

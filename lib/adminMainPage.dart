@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'adminCustomerList.dart';
+import 'adminEditAppointment.dart';
 import 'adminHelp.dart';
+import 'adminTransaction.dart';
 import 'superadminManageAccount.dart';
 import 'adminProfile.dart';
 import 'login.dart';
@@ -20,16 +22,19 @@ class AdminMainPage extends StatefulWidget {
 class _AdminMainPageState extends State<AdminMainPage> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   String admin_username = '';
+  String adminRole = '';
+  List<Map<String, dynamic>> appointmentHistory = [];
+  int totalAppointmentsToday = 0;
+  int totalUpcomingAppointments = 0;
 
   @override
   void initState() {
     super.initState();
     fetchSuperAdminUsername();
     fetchAdminUsername();
+    fetchTodayAppointments();
   }
 
-  //avoid back from other page occure error
-  //ScaffoldMessenger can be safely used
   @override
   void didChangeDependencies() 
   {
@@ -45,6 +50,7 @@ class _AdminMainPageState extends State<AdminMainPage> {
 
         if(role == 'superadmin') {
           setState(() {
+            adminRole = 'superadmin';
             admin_username = superadminDoc.data()?['superadmin_username'] ?? 'Superadmin Username';
           });
         }
@@ -67,6 +73,12 @@ class _AdminMainPageState extends State<AdminMainPage> {
         if(role == 'admins') {
           setState(() {
             admin_username = adminDoc.data()?['admin_username'] ?? 'Admin Username';
+          });
+        }
+
+        if (role == 'doctor' || role == 'nurse') {
+          setState(() {
+            adminRole = role;
           });
         }
       }
@@ -95,6 +107,135 @@ class _AdminMainPageState extends State<AdminMainPage> {
       );
     }
   }
+
+  Future<void> fetchTodayAppointments() async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime today = DateTime(now.year, now.month, now.day);
+
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('Appointments')
+          .where('doctorId', isEqualTo: widget.adminId)
+          .where('status', isEqualTo: 'upcoming')
+          .get();
+
+      List<Map<String, dynamic>> filteredToday = [];
+      int upcomingCount = 0;
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final dateString = data['date'];
+        if (dateString == null) continue;
+
+        try {
+          final parsedDate = DateTime.parse(dateString);
+          if (parsedDate.year == today.year &&
+              parsedDate.month == today.month &&
+              parsedDate.day == today.day) {
+            filteredToday.add(data);
+          }
+          upcomingCount++; // count every upcoming
+        } catch (_) {
+          continue;
+        }
+      }
+
+      setState(() {
+        appointmentHistory = filteredToday;
+        totalAppointmentsToday = filteredToday.length;
+        totalUpcomingAppointments = upcomingCount;
+      });
+    } catch (e) {
+      print("Error fetching appointments: $e");
+    }
+  }
+
+
+  Widget buildAppointmentCard(Map<String, dynamic> appointmentData) {
+    String patient = appointmentData['name'] ?? 'Unknown Patient';
+    String date = appointmentData['date'] ?? 'Unknown Date';
+    String time = appointmentData['timeSlot'] ?? appointmentData['time'] ?? 'Unknown Time';
+    String symptom = appointmentData['symptom'] ?? 'Unknown Sympton';
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 5,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Patient: $patient",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: 18, color: Colors.black54),
+              SizedBox(width: 6),
+              Text("Date: $date", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 18, color: Colors.black54),
+              SizedBox(width: 6),
+              Text("Time: $time", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(Icons.sick_rounded, size: 18, color: Colors.black54),
+              SizedBox(width: 6),
+              Text("Symptom: $symptom", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildDashboardCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      width: MediaQuery.of(context).size.width / 2 - 24,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 30, color: color),
+          SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+          ),
+          SizedBox(height: 6),
+          Text(title, style: TextStyle(color: Colors.blue.shade700)),
+        ],
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +342,7 @@ class _AdminMainPageState extends State<AdminMainPage> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.history, color: Colors.blue,),
+            leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
             title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
             onTap: () {
               if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
@@ -219,8 +360,8 @@ class _AdminMainPageState extends State<AdminMainPage> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.history, color: Colors.blue,),
-            title: const Text('Customer List', style: TextStyle(color: Colors.blue)),
+            leading: const Icon(Icons.people_sharp, color: Colors.blue,),
+            title: const Text('Clients List', style: TextStyle(color: Colors.blue)),
             onTap: () {
               Navigator.push(
                 context,
@@ -232,84 +373,107 @@ class _AdminMainPageState extends State<AdminMainPage> {
               );
             },
           ),
-          const ListTile(
-            leading: Icon(Icons.favorite, color: Colors.blue),
-            title: Text('Edit Appointment Slot', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => FavouritePage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
-          ),
-          const ListTile(
-            leading: Icon(Icons.local_hospital_rounded, color: Colors.blue),
+          ListTile(
+            leading: Icon(Icons.calendar_month_outlined, color: Colors.blue),
             title: Text('Appointments', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => CheckUpPage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AppointmentsPage(
+                    adminId: widget.adminId,
+                    superadminId: widget.superadminId,  
+                  ),
+                ),
+              );
+            },
           ),
-          const ListTile(
-            leading: Icon(Icons.celebration_rounded, color: Colors.blue),
-            title: Text('History', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => FreeCheckUpRewardsPage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
-          ),
-          const ListTile(
-            leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
+          ListTile(
+            leading: Icon(Icons.monetization_on_outlined, color: Colors.blue),
             title: Text('Transactions', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => HelpPage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TransactionHistoryPage(
+                    adminId: widget.adminId,
+                    superadminId: widget.superadminId
+                  ),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
             title: Text('Help Center', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserHelpPage(
-                        adminId: widget.adminId,
-                        superadminId: widget.superadminId
-                      ),
-                    ),
-                  );
-                },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserHelpPage(
+                    adminId: widget.adminId,
+                    superadminId: widget.superadminId
+                  ),
+                ),
+              );
+            },
           ),
         ],
       )),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-              children: [
-                Text("Testing")
-              ]
-            ),
-            SizedBox(height: 6),
-          ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Dashboard Overview',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 16,
+                children: [
+                  buildDashboardCard('Appointments \nToday', totalAppointmentsToday.toString(), Icons.calendar_today, Colors.lightBlue),
+                  buildDashboardCard('Appointments Scheduled', totalUpcomingAppointments.toString(), Icons.schedule, Colors.green),
+                  buildDashboardCard('Checkup Today', '12', Icons.medical_services, Colors.orange), // optionally dynamic
+                  buildDashboardCard('Checkup Scheduled', '5', Icons.fact_check, Colors.purple),     // optionally dynamic
+                ],
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Today’s Appointments',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              appointmentHistory.isEmpty
+                  ? Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.blue.shade900),
+                          SizedBox(width: 8),
+                          Text('No appointments scheduled today'),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: appointmentHistory.length,
+                      itemBuilder: (context, index) {
+                        return buildAppointmentCard(appointmentHistory[index]);
+                      },
+                    ),
+            ],
+          ),
         ),
       ),
     );

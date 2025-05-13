@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'appointmentHistory.dart';
+import 'favourite.dart';
 import 'login.dart';
 import 'mainpage.dart';
 import 'userprofile.dart';
@@ -183,26 +185,26 @@ class _HelpPageState extends State<HelpPage>
             ListTile(
               leading: Icon(Icons.history, color: Colors.blue,),
               title: Text('Appointment History', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => AppointmentHistory(userId: widget.userId),
-              //     ),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HistoryPage(userId: widget.userId),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.favorite, color: Colors.blue),
               title: Text('Favorite', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => FavouritePage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FavouritePage(userId: widget.userId),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.help_outline_sharp, color: Colors.blue),

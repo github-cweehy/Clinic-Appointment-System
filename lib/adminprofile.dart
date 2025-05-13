@@ -6,7 +6,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'adminCustomerList.dart';
+import 'adminEditAppointment.dart';
 import 'adminMainPage.dart';
+import 'adminTransaction.dart';
 import 'login.dart';
 import 'dart:io';
 import 'superadminManageAccount.dart';
@@ -403,115 +405,97 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
               ),
             ),
             ListTile(
-            leading: const Icon(Icons.home, color: Colors.blue),
-            title: const Text('Home Page', style: TextStyle(color: Colors.blue)),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminMainPage(
-                    superadminId: widget.superadminId,
-                    adminId: widget.adminId,
-                  ),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.history, color: Colors.blue,),
-            title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
-            onTap: () {
-              if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
+              leading: const Icon(Icons.home, color: Colors.blue),
+              title: const Text('Home Page', style: TextStyle(color: Colors.blue)),
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
+                    builder: (context) => AdminMainPage(
+                      superadminId: widget.superadminId,
+                      adminId: widget.adminId,
+                    ),
                   ),
                 );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Access Denied: Superadmin Only!')),
-                );
-              }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.history, color: Colors.blue,),
-            title: const Text('Customer List', style: TextStyle(color: Colors.blue)),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CustomerListPage(
-                    superadminId: widget.superadminId,
-                    adminId: widget.adminId,),
-                ),
-              );
-            },
-          ),
-          const ListTile(
-            leading: Icon(Icons.favorite, color: Colors.blue),
-            title: Text('Edit Appointment Slot', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => FavouritePage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
-          ),
-          const ListTile(
-            leading: Icon(Icons.local_hospital_rounded, color: Colors.blue),
-            title: Text('Appointments', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => CheckUpPage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
-          ),
-          const ListTile(
-            leading: Icon(Icons.celebration_rounded, color: Colors.blue),
-            title: Text('History', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => FreeCheckUpRewardsPage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
-          ),
-          const ListTile(
-            leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
-            title: Text('Transactions', style: TextStyle(color: Colors.blue)),
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //       builder: (context) => HelpPage(userId: widget.userId),
-            //     ),
-            //   );
-            // },
-          ),
-          ListTile(
-            leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
-            title: Text('Help Center', style: TextStyle(color: Colors.blue)),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => UserHelpPage(
-                    adminId: widget.adminId,
-                    superadminId: widget.superadminId
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
+              title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Access Denied: Superadmin Only!')),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_sharp, color: Colors.blue,),
+              title: const Text('Clients List', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CustomerListPage(
+                      superadminId: widget.superadminId,
+                      adminId: widget.adminId,),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.calendar_month_outlined, color: Colors.blue),
+              title: Text('Appointments', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AppointmentsPage(
+                      adminId: widget.adminId,
+                      superadminId: widget.superadminId,  
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.monetization_on_outlined, color: Colors.blue),
+              title: Text('Transactions', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TransactionHistoryPage(
+                      adminId: widget.adminId,
+                      superadminId: widget.superadminId
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
+              title: Text('Help Center', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserHelpPage(
+                      adminId: widget.adminId,
+                      superadminId: widget.superadminId
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         )),
         body: Column(

@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'appointmentslot.dart';
 import 'mainpage.dart';
 
 class SelectDoctor extends StatefulWidget {
@@ -22,6 +23,7 @@ class SelectDoctorState extends State<SelectDoctor> {
   String searchQuery = '';
   String username = '';
   Set <String> favouriteDoctorIds = {};
+  String doctorName = '';
 
   @override
   void initState() {
@@ -131,16 +133,35 @@ class SelectDoctorState extends State<SelectDoctor> {
         children: [
           SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Icon(Icons.local_hospital, color: Colors.blue),
+                SizedBox(width: 8),
+                Text(
+                  'Available Doctors',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 15),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
               onChanged: filterDoctor,
               decoration: InputDecoration(
-                labelText: 'Search by Doctor Name',
-                border: OutlineInputBorder(),
+                hintText: 'Search for a doctor...',
                 prefixIcon: Icon(Icons.search),
+                contentPadding: EdgeInsets.symmetric(vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
               ),
             ),
           ),
+          SizedBox(height: 8),
           Expanded(
             child: FutureBuilder<List<Map<String,dynamic>>>(
               future: fetchDoctor(),
@@ -173,97 +194,86 @@ class SelectDoctorState extends State<SelectDoctor> {
                   itemBuilder: (context, index) {
                     var data = filteredDoctors[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      color: Colors.blue.shade50,
-                      margin: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                        padding: EdgeInsets.all(16),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Doctor info
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Dr. ${data['first_name']} ${data['last_name']}',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.mail_outline,
-                                      color: Colors.blue
-                                    ),
-                                    SizedBox(width: 5),
-                                    Text(
-                                      data['email'] ?? '',
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 5),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.phone_iphone,
-                                      color: Colors.blue
-                                    ),
-                                    SizedBox(width: 5),
-                                    Text(
-                                      data['phone_number'] ?? '',
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.blue.shade100,
+                              child: Icon(Icons.person, size: 30, color: Colors.blue),
                             ),
-
-                            // Heart icon and Book button
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Dr. ${data['first_name']} ${data['last_name']}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.mail_outline, size: 16, color: Colors.grey),
+                                      SizedBox(width: 5),
+                                      Flexible(child: Text(data['email'] ?? '', style: TextStyle(fontSize: 14))),
+                                    ],
+                                  ),
+                                  SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.phone_android, size: 16, color: Colors.grey),
+                                      SizedBox(width: 5),
+                                      Text(data['phone_number'] ?? '', style: TextStyle(fontSize: 14)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                             Column(
                               children: [
                                 IconButton(
                                   icon: Icon(
-                                    favouriteDoctorIds.contains(data['id'] ?? data['email']) 
-                                      ? Icons.favorite 
-                                      : Icons.favorite_border,
-                                    color: Colors.blue,
+                                    favouriteDoctorIds.contains(data['id']) ? Icons.favorite : Icons.favorite_border,
+                                    color: Colors.redAccent,
                                   ),
                                   onPressed: () => toggleFavourite(data),
                                 ),
-
                                 ElevatedButton(
                                   onPressed: () {
-                                    // Navigator.push(
-                                    //   context,
-                                    //   MaterialPageRoute(
-                                    //     builder: (context) => AppointmentSlotPage(
-                                    //       doctorData: data,
-                                    //       usreId: widget.userId
-                                    //     ),
-                                    //   ),
-                                    // );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Appointmentslot(
+                                          userId: widget.userId,
+                                          doctorName: 'Dr. ${data['first_name']} ${data['last_name']}',
+                                          doctorId: data['id'],
+                                        ),
+                                      ),
+                                    );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    )
-                                  ),
-                                  child: Text(
-                                    'Book',
-                                    style: TextStyle(
-                                      color: Colors.white
+                                      borderRadius: BorderRadius.circular(30),
                                     ),
                                   ),
-                                )
+                                  child: 
+                                    Text(
+                                      'Book',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                ),
                               ],
                             ),
                           ],
                         ),
                       ),
                     );
+
                   },
                 );
               }

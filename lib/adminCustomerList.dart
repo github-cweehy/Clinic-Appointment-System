@@ -3,9 +3,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'adminEditAppointment.dart';
 import 'adminHelp.dart';
 import 'adminMainPage.dart';
 import 'adminProfile.dart';
+import 'adminTransaction.dart';
 import 'login.dart';
 import 'superadminManageAccount.dart';
 
@@ -222,108 +224,86 @@ class _CustomerListPage extends State<CustomerListPage> {
               ],
             ),
           ),
-                        ListTile(
-                leading: Icon(Icons.home, color: Colors.blue),
-                title: Text('Home Page', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AdminMainPage(
-                        superadminId: widget.superadminId,
-                        adminId: widget.adminId,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.history, color: Colors.blue,),
-                title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Access Denied: Superadmin Only!')),
-                    );
-                  }
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.history, color: Colors.blue,),
-                title: Text('Customer List', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CustomerListPage(
-                        superadminId: widget.superadminId,
-                        adminId: widget.adminId,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.favorite, color: Colors.blue),
-                title: Text('Edit Appointment Slot', style: TextStyle(color: Colors.blue)),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (context) => FavouritePage(userId: widget.userId),
-                //     ),
-                //   );
-                // },
-              ),
-              ListTile(
-                leading: Icon(Icons.local_hospital_rounded, color: Colors.blue),
-                title: Text('Appointments', style: TextStyle(color: Colors.blue)),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (context) => CheckUpPage(userId: widget.userId),
-                //     ),
-                //   );
-                // },
-              ),
-              ListTile(
-                leading: Icon(Icons.celebration_rounded, color: Colors.blue),
-                title: Text('History', style: TextStyle(color: Colors.blue)),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (context) => FreeCheckUpRewardsPage(userId: widget.userId),
-                //     ),
-                //   );
-                // },
-              ),
-              ListTile(
-                leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
-                title: Text('Transactions', style: TextStyle(color: Colors.blue)),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (context) => UserHelpPage(
-                //         adminId: widget.adminId,
-                //         superadminId: widget.superadminId
-                //       ),
-                //     ),
-                //   );
-                // },
-              ),
-              ListTile(
-                leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
-                title: Text('Help Center', style: TextStyle(color: Colors.blue)),
+          ListTile(
+            leading: const Icon(Icons.home, color: Colors.blue),
+            title: const Text('Home Page', style: TextStyle(color: Colors.blue)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdminMainPage(
+                    superadminId: widget.superadminId,
+                    adminId: widget.adminId,
+                  ),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
+            title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
+            onTap: () {
+              if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Access Denied: Superadmin Only!')),
+                );
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.people_sharp, color: Colors.blue,),
+            title: const Text('Clients List', style: TextStyle(color: Colors.blue)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CustomerListPage(
+                    superadminId: widget.superadminId,
+                    adminId: widget.adminId,),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.calendar_month_outlined, color: Colors.blue),
+            title: Text('Appointments', style: TextStyle(color: Colors.blue)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AppointmentsPage(
+                    adminId: widget.adminId,
+                    superadminId: widget.superadminId,  
+                  ),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.monetization_on_outlined, color: Colors.blue),
+            title: Text('Transactions', style: TextStyle(color: Colors.blue)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TransactionHistoryPage(
+                    adminId: widget.adminId,
+                    superadminId: widget.superadminId
+                  ),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
+            title: Text('Help Center', style: TextStyle(color: Colors.blue)),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -335,7 +315,7 @@ class _CustomerListPage extends State<CustomerListPage> {
                     ),
                   );
                 },
-              ),
+          ),
         ],
       )),
       body: Padding(
@@ -352,7 +332,7 @@ class _CustomerListPage extends State<CustomerListPage> {
                   },
                 ),
                 Text(
-                  "Users List",
+                  "Clients List",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

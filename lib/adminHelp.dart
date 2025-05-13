@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'adminEditAppointment.dart';
+import 'adminTransaction.dart';
 import 'superadminManageAccount.dart';
 import 'adminCustomerList.dart';
 import 'adminMainPage.dart';
@@ -348,7 +350,7 @@ class _UserHelpPage extends State<UserHelpPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.history, color: Colors.blue,),
+              leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
               title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
               onTap: () {
                 if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
@@ -366,8 +368,8 @@ class _UserHelpPage extends State<UserHelpPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.history, color: Colors.blue,),
-              title: const Text('Customer List', style: TextStyle(color: Colors.blue)),
+              leading: const Icon(Icons.people_sharp, color: Colors.blue,),
+              title: const Text('Clients List', style: TextStyle(color: Colors.blue)),
               onTap: () {
                 Navigator.push(
                   context,
@@ -379,57 +381,39 @@ class _UserHelpPage extends State<UserHelpPage> {
                 );
               },
             ),
-            const ListTile(
-              leading: Icon(Icons.favorite, color: Colors.blue),
-              title: Text('Edit Appointment Slot', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => FavouritePage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
-            ),
-            const ListTile(
-              leading: Icon(Icons.local_hospital_rounded, color: Colors.blue),
-              title: Text('Appointments', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => CheckUpPage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
-            ),
-            const ListTile(
-              leading: Icon(Icons.celebration_rounded, color: Colors.blue),
-              title: Text('History', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => FreeCheckUpRewardsPage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
-            ),
-            const ListTile(
-              leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
-              title: Text('Transactions', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => HelpPage(userId: widget.userId),
-              //     ),
-              //   );
-              // },
-            ),
             ListTile(
-              leading: const Icon(Icons.help_outline_sharp, color: Colors.blue),
-              title: const Text('Help Center', style: TextStyle(color: Colors.blue)),
+              leading: Icon(Icons.calendar_month_outlined, color: Colors.blue),
+              title: Text('Appointments', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AppointmentsPage(
+                      adminId: widget.adminId,
+                      superadminId: widget.superadminId,  
+                    ),
+                  ),
+                );
+              },
+            ),
+          ListTile(
+            leading: Icon(Icons.monetization_on_outlined, color: Colors.blue),
+            title: Text('Transactions', style: TextStyle(color: Colors.blue)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TransactionHistoryPage(
+                    adminId: widget.adminId,
+                    superadminId: widget.superadminId
+                  ),
+                ),
+              );
+            },
+          ),
+            ListTile(
+              leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
+              title: Text('Help Center', style: TextStyle(color: Colors.blue)),
               onTap: () {
                 Navigator.push(
                   context,

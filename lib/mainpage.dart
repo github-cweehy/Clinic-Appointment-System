@@ -1,8 +1,8 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
+import 'package:clinic_appointment_system_project/appointmentHistory.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'favourite.dart';
 import 'help.dart';
 import 'login.dart';
@@ -19,14 +19,16 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-
+  final User? currentUser = FirebaseAuth.instance.currentUser;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String username = '';
+  List<Map<String, dynamic>> appointmentHistory = [];
 
   @override
   void initState() {
     super.initState();
     fetchUsername();
+    fetchAppointmentHistory();
   }
 
   Future<void> fetchUsername() async {
@@ -37,6 +39,51 @@ class _MainPageState extends State<MainPage> {
       });
     } catch (e) {
       print("Error fetching username: $e");
+    }
+  }
+
+  Future<void> fetchAppointmentHistory() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('Appointments')
+          .where('userId', isEqualTo: widget.userId) 
+          .get();
+
+      final List<Map<String, dynamic>> fetchedHistory = [];
+
+      for (var doc in querySnapshot.docs) {
+        final appointmentData = doc.data() as Map<String, dynamic>;
+
+        final dateStr = appointmentData['date'];
+        final timeStr = appointmentData['timeSlot'] ?? appointmentData['time'];
+
+        try {
+          // Use DateFormat to parse "yyyy-MM-dd hh:mm a"
+          final DateFormat format = DateFormat('yyyy-MM-dd hh:mm a');
+          final DateTime appointmentStart = format.parse('$dateStr $timeStr');
+
+          final DateTime appointmentEnd = appointmentStart.add(Duration(hours: 1));
+
+          if (appointmentEnd.isBefore(DateTime.now())) {
+            print("Skipping expired appointment ID: ${doc.id}");
+            continue;
+          }
+
+          fetchedHistory.add({
+            'id': doc.id,
+            ...appointmentData,
+          });
+        } catch (e) {
+          print("Error parsing appointment datetime for document ${doc.id}: $e");
+          continue;
+        }
+      }
+
+      setState(() {
+        appointmentHistory = fetchedHistory;
+      });
+    } catch (e) {
+      print("Error fetching appointments: $e");
     }
   }
 
@@ -54,6 +101,59 @@ class _MainPageState extends State<MainPage> {
       );
     }
   }
+
+  Widget buildAppointmentCard(Map<String, dynamic> appointmentData) {
+    String doctor = appointmentData['doctorName'] ?? 'Unknown Doctor';
+    String date = appointmentData['date'] ?? 'Unknown Date';
+    String time = appointmentData['timeSlot'] ?? appointmentData['time'] ?? 'Unknown Time';
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 5,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            doctor,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: 18, color: Colors.black54),
+              SizedBox(width: 6),
+              Text("Date: $date", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 18, color: Colors.black54),
+              SizedBox(width: 6),
+              Text("Time: $time", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
 
   Widget build (BuildContext context) {
     return Scaffold(
@@ -155,14 +255,14 @@ class _MainPageState extends State<MainPage> {
             ListTile(
               leading: Icon(Icons.history, color: Colors.blue,),
               title: Text('Appointment History', style: TextStyle(color: Colors.blue)),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => AppointmentHistory(userId: widget.userId),
-              //     ),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HistoryPage(userId: widget.userId),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.favorite, color: Colors.blue),
@@ -197,60 +297,53 @@ class _MainPageState extends State<MainPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Welcome back to Good Health Clinic,",
+                        style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        username.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 22, 
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 25),
               Text(
-                'Your Appointment',
+                'Your Active Appointment',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(height: 10),
-              // appointmentHistory.isEmpty
-              //     ? Center(child: Text(''))
-              //     : ListView.builder(
-              //         shrinkWrap: true,  
-              //         itemCount: appointmentHistory.length,
-              //         itemBuilder: (context, index) {
-              //           return _buildAppointmentHistoryCard(appointmentHistory[index]);
-              //         },
-              //       ),
+              appointmentHistory.isEmpty
+                  ? Center(child: Text(''))
+                  : ListView.builder(
+                      shrinkWrap: true,  
+                      itemCount: appointmentHistory.length,
+                      itemBuilder: (context, index) {
+                        return buildAppointmentCard(appointmentHistory[index]);
+                      },
+                    ),
               GestureDetector(
                 onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                    ),
-                    builder: (context) => Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListTile(
-                            leading: Icon(Icons.local_hospital),
-                            title: Text('Select Doctor'),
-                            onTap: () {
-                              Navigator.pop(context); // Close the sheet
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SelectDoctor(userId: widget.userId),
-                                ),
-                              );
-                            },
-                          ),
-                          Divider(),
-                          ListTile(
-                            leading: Icon(Icons.access_time),
-                            title: Text('Select Time'),
-                            onTap: () {
-                              Navigator.pop(context); // Close the sheet
-                              // Navigate to your SelectTime page here:
-                              // Navigator.push(context, MaterialPageRoute(builder: (_) => SelectTime(userId: widget.userId)));
-                            },
-                          ),
-                        ],
-                      ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SelectDoctor(userId: widget.userId),
                     ),
                   );
                 },

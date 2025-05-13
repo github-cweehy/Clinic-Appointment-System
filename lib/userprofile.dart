@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path/path.dart' as path;
+import 'appointmentHistory.dart';
+import 'favourite.dart';
 import 'help.dart';
 import 'mainpage.dart';
 
@@ -379,26 +381,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ListTile(
                 leading: Icon(Icons.history, color: Colors.blue,),
                 title: Text('Appointment History', style: TextStyle(color: Colors.blue)),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (context) => AppointmentHistory(userId: widget.userId),
-                //     ),
-                //   );
-                // },
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HistoryPage(userId: widget.userId),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: Icon(Icons.favorite, color: Colors.blue),
                 title: Text('Favorite', style: TextStyle(color: Colors.blue)),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (context) => FavouritePage(userId: widget.userId),
-                //     ),
-                //   );
-                // },
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FavouritePage(userId: widget.userId),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
