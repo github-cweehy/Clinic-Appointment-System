@@ -5,15 +5,13 @@ import 'adminCustomerList.dart';
 import 'adminEditAppointment.dart';
 import 'adminHelp.dart';
 import 'adminTransaction.dart';
-import 'superadminManageAccount.dart';
-import 'adminProfile.dart';
+import 'adminprofile.dart';
 import 'login.dart';
 
 class AdminMainPage extends StatefulWidget {
-  final String? superadminId;
   final String? adminId;
 
-  AdminMainPage({required this.superadminId, required this.adminId});
+  AdminMainPage({required this.adminId});
 
   @override
   State<AdminMainPage> createState() => _AdminMainPageState();
@@ -30,7 +28,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
   @override
   void initState() {
     super.initState();
-    fetchSuperAdminUsername();
     fetchAdminUsername();
     fetchTodayAppointments();
   }
@@ -39,27 +36,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
   void didChangeDependencies() 
   {
     super.didChangeDependencies();
-  }
-
-  // Fetch superadmin username from Firebase
-  void fetchSuperAdminUsername() async {
-    try {
-      final superadminDoc = await FirebaseFirestore.instance.collection('superadmin').doc(widget.superadminId).get();
-      if (superadminDoc.exists) {
-        final role = superadminDoc.data()?['role']??'superadmin';
-
-        if(role == 'superadmin') {
-          setState(() {
-            adminRole = 'superadmin';
-            admin_username = superadminDoc.data()?['superadmin_username'] ?? 'Superadmin Username';
-          });
-        }
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching superadmin data: $e')),
-      );
-    }
   }
 
   // Fetch admin username from Firebase
@@ -282,18 +258,15 @@ class _AdminMainPageState extends State<AdminMainPage> {
                 );
               }).toList(),
               onChanged: (String? value) {
-                if (value == 'Profile') {
+                if (value == 'Logout') {
+                  logout(context);
+                } else if (value == 'Profile') {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AdminProfilePage(
-                        superadminId: widget.superadminId, 
-                        adminId: widget.adminId,
-                      ),
+                      builder: (context) => AdminProfilePage(adminId: widget.adminId),
                     ),
                   );
-                } else if (value == 'Logout') {
-                  logout(context);
                 }
               },
             ),
@@ -334,29 +307,10 @@ class _AdminMainPageState extends State<AdminMainPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => AdminMainPage(
-                    superadminId: widget.superadminId,
                     adminId: widget.adminId,
                   ),
                 ),
               );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
-            title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
-            onTap: () {
-              if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Access Denied: Superadmin Only!')),
-                );
-              }
             },
           ),
           ListTile(
@@ -367,7 +321,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => CustomerListPage(
-                    superadminId: widget.superadminId,
                     adminId: widget.adminId,),
                 ),
               );
@@ -382,7 +335,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
                 MaterialPageRoute(
                   builder: (context) => AppointmentsPage(
                     adminId: widget.adminId,
-                    superadminId: widget.superadminId,  
                   ),
                 ),
               );
@@ -397,7 +349,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
                 MaterialPageRoute(
                   builder: (context) => TransactionHistoryPage(
                     adminId: widget.adminId,
-                    superadminId: widget.superadminId
                   ),
                 ),
               );
@@ -412,7 +363,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
                 MaterialPageRoute(
                   builder: (context) => UserHelpPage(
                     adminId: widget.adminId,
-                    superadminId: widget.superadminId
                   ),
                 ),
               );
@@ -437,8 +387,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
                 children: [
                   buildDashboardCard('Appointments \nToday', totalAppointmentsToday.toString(), Icons.calendar_today, Colors.lightBlue),
                   buildDashboardCard('Appointments Scheduled', totalUpcomingAppointments.toString(), Icons.schedule, Colors.green),
-                  buildDashboardCard('Checkup Today', '12', Icons.medical_services, Colors.orange), // optionally dynamic
-                  buildDashboardCard('Checkup Scheduled', '5', Icons.fact_check, Colors.purple),     // optionally dynamic
                 ],
               ),
               SizedBox(height: 24),

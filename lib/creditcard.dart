@@ -56,9 +56,13 @@ class _CardPaymentPageState extends State<CardPaymentPage> {
       SnackBar(content: Text('Transaction successfully')),
     );
 
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => PaymentSuccessPage(userId: widget.userId)));
+      MaterialPageRoute(
+        builder: (context) => PaymentSuccessPage(userId: widget.userId),
+      ),
+      (route) => false,
+    );
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Transaction failed')),
@@ -131,154 +135,166 @@ class _CardPaymentPageState extends State<CardPaymentPage> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 24),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Add your payment information',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  Icon(Icons.credit_card, color: Colors.blue, size: 30),
+                  SizedBox(width: 10),
+                  Text(
+                    'Card Payment',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ),
-              SizedBox(height: 20),
-
-              // Card Name
-              TextFormField(
-                controller: _cardHolderNameController, 
-                decoration: InputDecoration(
-                  labelText: 'Name on Card',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your name on the card';
-                  }
-                  else if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-                    return 'Name can only contain letters and spaces';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Card Number Input
-              TextFormField(
-                controller: _cardNumberController,
-                decoration: InputDecoration(
-                  labelText: 'Card Number',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(19),
-                  CardNumberInputFormatter(), 
                 ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your card number';
-                  } else if (!_validateCardNumber(value)) {
-                    return 'Invalid card number';
-                  }
-                  return null;
-                },
               ),
-              SizedBox(height: 16),
-              // Expiry Date Input
-              TextFormField(
-                controller: _expiryDateController,
-                decoration: InputDecoration(
-                  labelText: 'Expiry Date (MM/YY)',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              SizedBox(height: 20),
+
+              Text(
+                'Please enter your card details',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey[600]
+                ),
+              ),
+              SizedBox(height: 20),
+              
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildTextField(_cardHolderNameController, 'Name on Card', TextInputType.text),
+                      _buildTextField(_cardNumberController, 'Card Number', TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(19),
+                          CardNumberInputFormatter(),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Enter card number';
+                          if (!_validateCardNumber(value)) return 'Invalid card number';
+                          return null;
+                        },
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(_expiryDateController, 'Expiry Date (MM/YY)', TextInputType.datetime,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return 'Enter expiry date';
+                                if (!_validateExpiryDate(value)) return 'Invalid expiry date';
+                                return null;
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTextField(_cvcController, 'CVC', TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return 'Enter CVC';
+                                if (value.length != 3 && value.length != 4) return 'Invalid CVC';
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                keyboardType: TextInputType.datetime,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the expiry date';
-                  }
-                  if (!_validateExpiryDate(value)) {
-                    return 'Invalid expiry date';
-                  }
-                  return null;
-                },
               ),
-              SizedBox(height: 16),
-              // CVC Input
-              TextFormField(
-                controller: _cvcController,
-                decoration: InputDecoration(
-                  labelText: 'CVC',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the CVC';
-                  }
-                  if (value.length != 3 && value.length != 4) {
-                    return 'Invalid CVC';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 40),
-              // Confirm Payment button
+              SizedBox(height: 30),
+              _buildPriceSummary(),
+              SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue, 
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.monetization_on_outlined, color: Colors.white),
+                  label: Text(
+                    'Pay RM ${widget.price.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
                     ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       _saveTransactionToFirebase();
                     }
                   },
-                  child: Text(
-                    'Confirm Payment : RM ${widget.price}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    TextInputType type, {
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: type,
+        inputFormatters: inputFormatters,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          labelText: label,
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        validator: validator,
+      ),
+    );
+  }
+
+  Widget _buildPriceSummary() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Total", style: TextStyle(fontSize: 16, color: Colors.green[700])),
+          Text("RM ${widget.price.toStringAsFixed(2)}",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green[900])),
+        ],
       ),
     );
   }

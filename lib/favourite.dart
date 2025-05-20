@@ -74,6 +74,118 @@ class _FavouritePageState extends State<FavouritePage> {
     }
   }
 
+  Widget buildFavouriteCard(BuildContext context, String docId, Map<String, dynamic> favourite) {
+    return Dismissible(
+      key: Key(docId),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        color: Colors.red,
+        child: Icon(Icons.delete_forever, color: Colors.white, size: 30),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Confirm Deletion"),
+            content: Text("Are you sure you want to remove Dr. ${favourite['first_name']} ${favourite['last_name']} from your favourites?"),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text("Cancel")),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text("Remove")),
+            ],
+          ),
+        );
+      },
+      onDismissed: (direction) {
+        removeFavourite(docId);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Doctor removed from favourites.")));
+      },
+      child: Card(
+        elevation: 3,
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.person, color: Colors.blue),
+                  SizedBox(width: 10),
+                  Text(
+                    'Dr. ${favourite['first_name']} ${favourite['last_name']}',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+
+              //Email
+              Row(
+                children: [
+                  Icon(Icons.email_outlined, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text(favourite['email'], style: TextStyle(fontSize: 16)),
+                ],
+              ),
+              SizedBox(height: 10),
+
+              //Phone
+              Row(
+                children: [
+                  Icon(Icons.phone_android, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text(favourite['phone_number'], style: TextStyle(fontSize: 16)),
+                ],
+              ),
+              Divider(height: 40, thickness: 2,),
+
+              //Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: Icon(
+                        Icons.calendar_month,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        "Book Appointment",
+                        style: TextStyle(
+                          fontSize: 16, 
+                          color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Appointmentslot(
+                              userId: widget.userId,
+                              doctorName: 'Dr. ${favourite['first_name']} ${favourite['last_name']}',
+                              doctorId: favourite['doctor_id'] ?? docId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,93 +349,41 @@ class _FavouritePageState extends State<FavouritePage> {
               final favourite = doc.data() as Map<String, dynamic>;
               final docId = doc.id;
 
-              return Card(
-                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+              if (index == 0) {
+                // Show title above first card
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
+                      child: Row(
                         children: [
-                          Icon(Icons.person_pin, size: 32, color: Colors.blue),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Dr. ${favourite['first_name']} ${favourite['last_name']}',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Icon(Icons.email_outlined, size: 20, color: Colors.blue),
-                          SizedBox(width: 10),
-                          Text(favourite['email'], style: TextStyle(fontSize: 16)),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.phone, size: 20, color: Colors.blue),
-                          SizedBox(width: 10),
-                          Text(favourite['phone_number'], style: TextStyle(fontSize: 16)),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Appointmentslot(
-                                      userId: widget.userId,
-                                      doctorName:
-                                          'Dr. ${favourite['first_name']} ${favourite['last_name']}',
-                                      doctorId: favourite['doctor_id'] ?? docId,
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.calendar_month, color: Colors.white),
-                              label: Text(
-                                "Book Appointment",
-                                style: TextStyle(
-                                  color: Colors.white
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
+                          Text(
+                            "Your Favourite Doctors",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                           SizedBox(width: 10),
-                          IconButton(
-                            onPressed: () => removeFavourite(docId),
-                            icon: Icon(Icons.delete_outline, color: Colors.red),
-                            tooltip: "Remove from Favorites",
+                          Text(
+                            "(swipe left to delete)",
+                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
                           ),
+                          SizedBox(height: 15),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              );
-          },
-        );
-      },
-    ),
-  );
+                    ),
+                    buildFavouriteCard(context, docId, favourite),
+                  ],
+                );
+              }
+
+              return buildFavouriteCard(context, docId, favourite);
+            },
+          );
+        },
+      ),
+    );
   }
 }

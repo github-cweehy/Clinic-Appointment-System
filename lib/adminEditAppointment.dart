@@ -1,4 +1,4 @@
-import 'package:clinic_appointment_system_project/adminTransaction.dart';
+import 'adminTransaction.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,15 +6,13 @@ import 'package:intl/intl.dart';
 import 'adminCustomerList.dart';
 import 'adminHelp.dart';
 import 'adminMainPage.dart';
-import 'superadminManageAccount.dart';
 import 'login.dart';
-import 'adminProfile.dart';
+import 'adminprofile.dart';
 
 class AppointmentsPage extends StatefulWidget {
   final String? adminId;
-  final String? superadminId;
 
-  AppointmentsPage({required this.adminId, required this.superadminId});
+  AppointmentsPage({required this.adminId});
 
   @override
   State<AppointmentsPage> createState() => _AppointmentsPageState();
@@ -268,18 +266,15 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                 );
               }).toList(),
               onChanged: (String? value) {
-                if (value == 'Profile') {
+                if (value == 'Logout') {
+                  logout(context);
+                } else if (value == 'Profile') {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AdminProfilePage(
-                        superadminId: widget.superadminId, 
-                        adminId: widget.adminId,
-                      ),
+                      builder: (context) => AdminProfilePage(adminId: widget.adminId),
                     ),
                   );
-                } else if (value == 'Logout') {
-                  logout(context);
                 }
               },
             ),
@@ -320,29 +315,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                   context,
                   MaterialPageRoute(
                     builder: (context) => AdminMainPage(
-                      superadminId: widget.superadminId,
                       adminId: widget.adminId,
                     ),
                   ),
                 );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
-              title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
-              onTap: () {
-                if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Access Denied: Superadmin Only!')),
-                  );
-                }
               },
             ),
             ListTile(
@@ -353,7 +329,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                   context,
                   MaterialPageRoute(
                     builder: (context) => CustomerListPage(
-                      superadminId: widget.superadminId,
                       adminId: widget.adminId,),
                   ),
                 );
@@ -368,7 +343,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                   MaterialPageRoute(
                     builder: (context) => AppointmentsPage(
                       adminId: widget.adminId,
-                      superadminId: widget.superadminId,  
                     ),
                   ),
                 );
@@ -383,7 +357,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                   MaterialPageRoute(
                     builder: (context) => TransactionHistoryPage(
                       adminId: widget.adminId,
-                      superadminId: widget.superadminId
                     ),
                   ),
                 );
@@ -398,7 +371,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                   MaterialPageRoute(
                     builder: (context) => UserHelpPage(
                       adminId: widget.adminId,
-                      superadminId: widget.superadminId
                     ),
                   ),
                 );

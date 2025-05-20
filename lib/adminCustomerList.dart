@@ -6,16 +6,14 @@ import 'package:flutter/material.dart';
 import 'adminEditAppointment.dart';
 import 'adminHelp.dart';
 import 'adminMainPage.dart';
-import 'adminProfile.dart';
+import 'adminprofile.dart';
 import 'adminTransaction.dart';
 import 'login.dart';
-import 'superadminManageAccount.dart';
 
 class CustomerListPage extends StatefulWidget {
-  final String? superadminId;
   final String? adminId;
 
-  CustomerListPage({required this.superadminId, required this.adminId});
+  CustomerListPage({required this.adminId});
 
   @override
   _CustomerListPage createState() => _CustomerListPage();
@@ -58,23 +56,8 @@ class _CustomerListPage extends State<CustomerListPage> {
   @override
   void initState() {
     super.initState();
-    fetchSuperAdminUsername();
     fetchAdminUsername();
     fetchUserData();
-  }
-
-  // Fetch superadmin username from Firebase
-  void fetchSuperAdminUsername() async {
-    try {
-      DocumentSnapshot snapshot = await _firestore.collection('superadmin').doc(widget.superadminId).get();
-      if (snapshot.exists && snapshot.data() != null) {
-        setState(() {
-          admin_username = snapshot['superadmin_username'];
-        });
-      }
-    } catch (e) {
-      print("Error fetching superadmin username: $e");
-    }
   }
 
   // Fetch admin username from Firebase
@@ -183,15 +166,15 @@ class _CustomerListPage extends State<CustomerListPage> {
                 );
               }).toList(),
               onChanged: (String? value) {
-                if (value == 'Profile') {
+                if (value == 'Logout') {
+                  logout(context);
+                } else if (value == 'Profile') {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AdminProfilePage(superadminId: widget.superadminId, adminId: widget.adminId),
+                      builder: (context) => AdminProfilePage(adminId: widget.adminId),
                     ),
                   );
-                } else if (value == 'Logout') {
-                  logout(context);
                 }
               },
             ),
@@ -232,29 +215,10 @@ class _CustomerListPage extends State<CustomerListPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => AdminMainPage(
-                    superadminId: widget.superadminId,
                     adminId: widget.adminId,
                   ),
                 ),
               );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
-            title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
-            onTap: () {
-              if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Access Denied: Superadmin Only!')),
-                );
-              }
             },
           ),
           ListTile(
@@ -265,7 +229,6 @@ class _CustomerListPage extends State<CustomerListPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => CustomerListPage(
-                    superadminId: widget.superadminId,
                     adminId: widget.adminId,),
                 ),
               );
@@ -280,7 +243,6 @@ class _CustomerListPage extends State<CustomerListPage> {
                 MaterialPageRoute(
                   builder: (context) => AppointmentsPage(
                     adminId: widget.adminId,
-                    superadminId: widget.superadminId,  
                   ),
                 ),
               );
@@ -295,7 +257,6 @@ class _CustomerListPage extends State<CustomerListPage> {
                 MaterialPageRoute(
                   builder: (context) => TransactionHistoryPage(
                     adminId: widget.adminId,
-                    superadminId: widget.superadminId
                   ),
                 ),
               );
@@ -310,7 +271,6 @@ class _CustomerListPage extends State<CustomerListPage> {
                     MaterialPageRoute(
                       builder: (context) => UserHelpPage(
                         adminId: widget.adminId,
-                        superadminId: widget.superadminId
                       ),
                     ),
                   );

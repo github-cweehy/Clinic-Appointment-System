@@ -6,15 +6,13 @@ import 'adminCustomerList.dart';
 import 'adminEditAppointment.dart';
 import 'adminHelp.dart';
 import 'adminMainPage.dart';
-import 'adminProfile.dart';
+import 'adminprofile.dart';
 import 'login.dart';
-import 'superadminManageAccount.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
-  final String? superadminId;
   final String? adminId;
 
-  TransactionHistoryPage({required this.superadminId, required this.adminId});
+  TransactionHistoryPage({required this.adminId});
 
   @override
   _TransactionHistoryPage createState() => _TransactionHistoryPage();
@@ -37,7 +35,6 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
   @override
   void initState() {
     super.initState();
-    fetchSuperAdminUsername();
     fetchAdminUsername();
     fetchAllUsernames();
     DateTime now = DateTime.now();
@@ -50,21 +47,6 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
         searchText = searchController.text.trim().toLowerCase();
       });
     });
-  }
-
-  // Fetch super admin username from Firebase
-  void fetchSuperAdminUsername() async {
-    try {
-      DocumentSnapshot snapshot =
-          await _firestore.collection('superadmin').doc(widget.superadminId).get();
-      if (snapshot.exists && snapshot.data() != null) {
-        setState(() {
-          admin_username = snapshot['superadmin_username'];
-        });
-      }
-    } catch (e) {
-      print("Error fetching superadmin username: $e");
-    }
   }
 
   // Fetch admin username from Firebase
@@ -214,18 +196,15 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
                 );
               }).toList(),
               onChanged: (String? value) {
-                if (value == 'Profile') {
+                if (value == 'Logout') {
+                  logout(context);
+                } else if (value == 'Profile') {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AdminProfilePage(
-                        superadminId: widget.superadminId, 
-                        adminId: widget.adminId,
-                      ),
+                      builder: (context) => AdminProfilePage(adminId: widget.adminId),
                     ),
                   );
-                } else if (value == 'Logout') {
-                  logout(context);
                 }
               },
             ),
@@ -266,29 +245,10 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => AdminMainPage(
-                      superadminId: widget.superadminId,
                       adminId: widget.adminId,
                     ),
                   ),
                 );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blue,),
-              title: const Text('Manage Admin Account', style: TextStyle(color: Colors.blue)),
-              onTap: () {
-                if (widget.superadminId != null && widget.superadminId!.isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ManageAccountPage(superadminId: widget.superadminId, adminId: widget.adminId),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Access Denied: Superadmin Only!')),
-                  );
-                }
               },
             ),
             ListTile(
@@ -299,7 +259,6 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => CustomerListPage(
-                      superadminId: widget.superadminId,
                       adminId: widget.adminId,),
                   ),
                 );
@@ -314,7 +273,6 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
                   MaterialPageRoute(
                     builder: (context) => AppointmentsPage(
                       adminId: widget.adminId,
-                      superadminId: widget.superadminId,  
                     ),
                   ),
                 );
@@ -329,7 +287,6 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
                   MaterialPageRoute(
                     builder: (context) => TransactionHistoryPage(
                       adminId: widget.adminId,
-                      superadminId: widget.superadminId
                     ),
                   ),
                 );
@@ -344,7 +301,6 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
                   MaterialPageRoute(
                     builder: (context) => UserHelpPage(
                       adminId: widget.adminId,
-                      superadminId: widget.superadminId
                     ),
                   ),
                 );

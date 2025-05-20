@@ -92,107 +92,135 @@ class _EWalletPaymentPageState extends State<EWalletPaymentPage> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 24),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Add your e-wallet payment information',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  Icon(Icons.account_balance_wallet, color: Colors.blue, size: 28),
+                  SizedBox(width: 10),
+                  Text(
+                    'E-Wallet Payment',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
+                ],
+              ),
+              SizedBox(height: 20),
+
+              Text(
+                'Please enter your e-wallet details',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey[600]
                 ),
               ),
               SizedBox(height: 20),
 
-              // E-wallet selection dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedEWallet,
-                decoration: InputDecoration(
-                  labelText: 'Select E-Wallet',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      DropdownButtonFormField<String>(
+                        value: _selectedEWallet,
+                        decoration: InputDecoration(
+                          labelText: 'Select E-Wallet',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        items: ["PayNet", "Boost", "Touch 'n Go", "GrabPay"]
+                            .map((wallet) => DropdownMenuItem(
+                                  value: wallet,
+                                  child: Text(wallet),
+                                ))
+                            .toList(),
+                        onChanged: (value) => setState(() => _selectedEWallet = value),
+                        validator: (value) => value == null || value.isEmpty ? 'Please select an e-wallet' : null,
+                      ),
+                      SizedBox(height: 20),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: InputDecoration(
+                          labelText: 'Phone Number',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return 'Please enter your phone number';
+                          if (!RegExp(r'^01\d{8,9}$').hasMatch(value))
+                            return 'Phone number must start with 01 and be 10-11 digits';
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                items: ['PayNet', 'Boost', 'Touch \'n Go', 'GrabPay']
-                    .map((wallet) => DropdownMenuItem(
-                          value: wallet,
-                          child: Text(wallet),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedEWallet = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select an e-wallet';
-                  }
-                  return null;
-                },
               ),
-              SizedBox(height: 20),
-
-              // Phone number Input
-              TextFormField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+              SizedBox(height: 30),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.green.shade200),
                 ),
-                keyboardType: TextInputType.phone,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your phone number';
-                  }
-                  if (!RegExp(r'^01\d{8,9}$').hasMatch(value)) {
-                    return 'Phone number must start with 01 and be 10-11 digits long';
-                  }
-                  return null;
-                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Total Amount", style: TextStyle(fontSize: 16, color: Colors.green[700])),
+                    Text("RM ${widget.price.toStringAsFixed(2)}",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green[900])),
+                  ],
+                ),
               ),
-              SizedBox(height: 40),
-
-              // Confirm Payment button
+              SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.monetization_on_outlined, color: Colors.white),
+                  label: Text(
+                    "Pay RM ${widget.price.toStringAsFixed(2)}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       _saveEWalletTransactionToFirebase();
                     }
                   },
-                  child: Text(
-                    'Confirm Payment : RM ${widget.price}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
                 ),
               ),
             ],

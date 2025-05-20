@@ -222,42 +222,69 @@ class _HelpPageState extends State<HelpPage>
         ),
       ),      
       body: Container(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Need Help?',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            SizedBox(height:20),
+            Row(
+              children: [
+                Icon(Icons.help_outline, size: 28, color: Colors.blue),
+                SizedBox(width: 8),
+                Text(
+                  'Need Help?',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 30),
+
+            Text(
+              "Let us know what issue you're facing and we'll assist you as soon as possible.",
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+            SizedBox(height: 40),
+
             TextField(
               controller: problemController,
-              maxLines: 5,
+              maxLines: 6,
               decoration: InputDecoration(
-                labelText: 'Describe your problem',
-                border: OutlineInputBorder(),
+                labelText: 'Describe your issue',
+                hintText: 'E.g., I cannot access my appointment history...', hintStyle: TextStyle(color: Colors.grey[400]),
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
-                fillColor: Colors.white,
-                contentPadding: EdgeInsets.all(16.0),
+                fillColor: Colors.grey[100],
               ),
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 40),
+
             Center(
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 onPressed: submitProblem,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                icon: Icon(
+                  Icons.send, 
+                  color: Colors.white,
+                  size: 20,
+                ),
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    'Submit Issue',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
-                child: Text(
-                  'Submit Problem',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,  
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
               ),
