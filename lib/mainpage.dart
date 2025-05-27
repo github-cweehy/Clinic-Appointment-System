@@ -378,48 +378,6 @@ class _MainPageState extends State<MainPage> {
                 ),
               ),
               SizedBox(height: 60),
-
-              Text(
-                'Your Active Check Up',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 20),
-              // userPackages.isEmpty
-              //   ? Center(child: Container(
-              //       width: double.infinity,
-              //       padding: EdgeInsets.symmetric(vertical: 15),
-              //       margin: EdgeInsets.symmetric(vertical: 5),
-              //       decoration: BoxDecoration(
-              //         color: Colors.red,
-              //         borderRadius: BorderRadius.circular(10),
-              //       ),
-              //       child: Center(
-              //         child: Row(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           children: [
-              //             Icon(Icons.not_interested_rounded, color: Colors.white),
-              //             SizedBox(width: 10),
-              //             Text(
-              //               'No packages bought.',
-              //               style: TextStyle(
-              //                 color: Colors.white,
-              //                 fontSize: 15,
-              //                 ),
-              //               ),
-              //           ],
-              //         ),
-              //       )))
-              //   : ListView.builder(
-              //       shrinkWrap: true,
-              //       physics: NeverScrollableScrollPhysics(),
-              //       itemCount: userPackages.length,
-              //       itemBuilder: (context, index) {
-              //         return _buildPackageCard(userPackages[index]);
-              //       },
-              //     ),
             ],
           ),
         ),

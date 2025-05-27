@@ -318,204 +318,165 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
           ),
-          title: Image.asset(
-            'assets/cliniclogo.jpg',
-            height: 60,
-          ),
-          centerTitle: true,
         ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/cliniclogo.jpg',
-                      height: 60,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Good Health',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
-                    ),
-                  ],
-                ),
+        title: Image.asset(
+          'assets/cliniclogo.jpg',
+          height: 60,
+        ),
+        centerTitle: true,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
               ),
-              ListTile(
-                leading: Icon(Icons.home, color: Colors.blue),
-                title: Text('Home Page', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MainPage(
-                        userId: widget.userId,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.history, color: Colors.blue,),
-                title: Text('Appointment History', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HistoryPage(userId: widget.userId),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.favorite, color: Colors.blue),
-                title: Text('Favorite', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FavouritePage(userId: widget.userId),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
-                title: Text('Help Center', style: TextStyle(color: Colors.blue)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HelpPage(userId: widget.userId),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),  
-        body: Column(
-          children: [
-            TabBar(
-              indicatorColor: Colors.blue,
-              tabs: [
-                Tab(child: Text("Profile", style: TextStyle(color: Colors.black))),
-                Tab(child: Text("Body Details", style: TextStyle(color: Colors.black))),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Profile Tab
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        GestureDetector(
-                          onTap: pickImage,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.blue,
-                            backgroundImage: profileImageUrl != null
-                                ? NetworkImage(profileImageUrl!)
-                                : null,
-                            child: profileImageUrl == null
-                                ? Icon(Icons.person, color: Colors.black, size: 50)
-                                : null,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-
-                        Text(
-                          userData?['username'] ?? "User's Name",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // First Name
-                        buildEditableTextField('First Name', userData?['first_name'],(){
-                          edit('first_name', userData?['first_name'] ?? '');
-                        }),
-                        const SizedBox(height: 10),
-
-                        // Last Name
-                        buildEditableTextField('Last Name', userData?['last_name'], () {
-                          edit('last_name', userData?['last_name'] ?? '');
-                        }),
-                        const SizedBox(height: 10),
-
-                        // Username
-                        buildReadOnlyTextField('Username', userData?['username']),
-                        const SizedBox(height: 10),
-
-                        // Email
-                        buildReadOnlyTextField('Email', userData?['email']),
-                        const SizedBox(height: 10),
-
-                        // Phone Number
-                        buildEditableTextField('Phone Number', userData?['phone_number'], () {
-                          edit('phone_number', userData?['phone_number'] ?? '');
-                        }),                        
-                        const SizedBox(height: 20),
-
-                        // Return Button
-                        buildActionButton('Return', () {
-                          Navigator.pop(context);
-                        }),
-
-                        const SizedBox(height: 20),
-
-                        // Change Password Button
-                        buildActionButton('Change Password', () {
-                          showPasswordChangeDialog();
-                        }),
-                      ],
+                  Image.asset(
+                    'assets/cliniclogo.jpg',
+                    height: 60,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Good Health',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
                     ),
                   ),
-
-                  // Body Details Tab
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Your Body Details",
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        SizedBox(height: 15),
-                      ],
-                    ),
-                  )
                 ],
               ),
             ),
+            ListTile(
+              leading: Icon(Icons.home, color: Colors.blue),
+              title: Text('Home Page', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MainPage(
+                      userId: widget.userId,
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.history, color: Colors.blue,),
+              title: Text('Appointment History', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HistoryPage(userId: widget.userId),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.favorite, color: Colors.blue),
+              title: Text('Favorite', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FavouritePage(userId: widget.userId),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help_outline_sharp, color: Colors.blue),
+              title: Text('Help Center', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HelpPage(userId: widget.userId),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),  
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            GestureDetector(
+              onTap: pickImage,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.blue,
+                backgroundImage: profileImageUrl != null
+                    ? NetworkImage(profileImageUrl!)
+                    : null,
+                child: profileImageUrl == null
+                    ? Icon(Icons.person, color: Colors.black, size: 50)
+                    : null,
+              ),
+            ),
+            SizedBox(height: 10),
+
+            Text(
+              userData?['username'] ?? "User's Name",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+
+            // First Name
+            buildEditableTextField('First Name', userData?['first_name'],(){
+              edit('first_name', userData?['first_name'] ?? '');
+            }),
+            const SizedBox(height: 10),
+
+            // Last Name
+            buildEditableTextField('Last Name', userData?['last_name'], () {
+              edit('last_name', userData?['last_name'] ?? '');
+            }),
+            const SizedBox(height: 10),
+
+            // Username
+            buildReadOnlyTextField('Username', userData?['username']),
+            const SizedBox(height: 10),
+
+            // Email
+            buildReadOnlyTextField('Email', userData?['email']),
+            const SizedBox(height: 10),
+
+            // Phone Number
+            buildEditableTextField('Phone Number', userData?['phone_number'], () {
+              edit('phone_number', userData?['phone_number'] ?? '');
+            }),                        
+            const SizedBox(height: 20),
+
+            // Return Button
+            buildActionButton('Return', () {
+              Navigator.pop(context);
+            }),
+
+            const SizedBox(height: 20),
+
+            // Change Password Button
+            buildActionButton('Change Password', () {
+              showPasswordChangeDialog();
+            }),
           ],
         ),
       ),

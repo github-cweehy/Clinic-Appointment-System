@@ -51,12 +51,6 @@ class _AdminMainPageState extends State<AdminMainPage> {
             admin_username = adminDoc.data()?['admin_username'] ?? 'Admin Username';
           });
         }
-
-        if (role == 'doctor' || role == 'nurse') {
-          setState(() {
-            adminRole = role;
-          });
-        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

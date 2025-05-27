@@ -127,6 +127,52 @@ class _CustomerListPage extends State<CustomerListPage> {
     }
   }
 
+  void showUserDetails(BuildContext context, String username, String email, String phone) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'User Details',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              Divider(thickness: 1),
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text('Username'),
+                subtitle: Text(username),
+              ),
+              ListTile(
+                leading: Icon(Icons.email),
+                title: Text('Email'),
+                subtitle: Text(email),
+              ),
+              ListTile(
+                leading: Icon(Icons.phone),
+                title: Text('Phone Number'),
+                subtitle: Text(phone),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(Icons.close, color: Colors.white),
+                label: Text('Close', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -281,16 +327,11 @@ class _CustomerListPage extends State<CustomerListPage> {
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios, color: Colors.black),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
+                Icon(Icons.people, color: Colors.blue, size: 30.0),
+                SizedBox(width: 20),
                 Text(
                   "Clients List",
                   style: TextStyle(
@@ -300,7 +341,7 @@ class _CustomerListPage extends State<CustomerListPage> {
                 ),
               ],
             ),
-            SizedBox(height: 2),
+            SizedBox(height: 15),
             Column(
               children: [
                 SizedBox(height: 6),
@@ -309,72 +350,66 @@ class _CustomerListPage extends State<CustomerListPage> {
                   child: TextField(
                     onChanged: searchUser,
                     decoration: InputDecoration(
-                      labelText: 'Search by username',
+                      hintText: 'Search name',
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
                       ),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
                     ),
-                  ),
+                  )
                 ),
               ],
             ),
             SizedBox(height: 6),
             Expanded(
-                child: ListView.builder(
-              itemCount: searchQuery.isEmpty ? usersData.length : filterUser.length,
-              padding: const EdgeInsets.all(8.0),
-              itemBuilder: (context, index) {
-                final user = searchQuery.isEmpty ? usersData[index] : filterUser[index];
-                final username = user['username'];
-                final email = user['email'];
-                final phonenum = user['phone_number'];
+              child: usersData.isEmpty
+              ? Center(
+                  child: Text(
+                    'No users found.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: searchQuery.isEmpty ? usersData.length : filterUser.length,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemBuilder: (context, index) {
+                    final user = searchQuery.isEmpty ? usersData[index] : filterUser[index];
+                    final username = user['username'];
+                    final email = user['email'];
+                    final phonenum = user['phone_number'];
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    border: Border.all(
-                      color: Colors.blueAccent,
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 7),
-                  child: Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.person, color: Colors.white, size: 20),
-                            SizedBox(width: 6),
-                            Text(username, style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
-                          ],
+                    return InkWell(
+                      onTap: () => showUserDetails(context, username, email, phonenum),
+                      child: Card(
+                        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.blue.shade200,
+                                child: Text(username[0].toUpperCase(), style: TextStyle(color: Colors.white, fontSize: 18)),
+                              ),
+                              SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(username, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  SizedBox(height: 4),
+                                ],
+                              )
+                            ],
+                          ),
                         ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.email, color: Colors.white, size: 20),
-                            SizedBox(width: 6),
-                            Text(email, style: TextStyle(fontSize: 14, color: Colors.white)),
-                          ],
-                        ),
-                        SizedBox(height: 3),
-                        Row(
-                          children: [
-                            Icon(Icons.phone, color: Colors.white, size: 20),
-                            SizedBox(width: 6),
-                            Text(phonenum, style: TextStyle(fontSize: 14, color: Colors.white)),
-                          ],
-                        ),
-                        SizedBox(height: 3),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            )),
+                      ),
+                    );
+                  },
+                ),
+            )
           ],
         ),
       ),

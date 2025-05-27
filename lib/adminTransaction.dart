@@ -1,13 +1,18 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'adminCustomerList.dart';
 import 'adminEditAppointment.dart';
 import 'adminHelp.dart';
 import 'adminMainPage.dart';
 import 'adminprofile.dart';
 import 'login.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   final String? adminId;
@@ -26,17 +31,21 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
   DateTime startDate = DateTime.now();
   DateTime endDate = DateTime.now();
   String admin_username = '';
+  double totalRevenue = 0;
 
   Timestamp? startTimestamp;
   Timestamp? endTimestamp;
 
   final Map<String, String> _usernameCache = {};
+  List<Map<String, dynamic>> appointments = [];
 
   @override
   void initState() {
     super.initState();
     fetchAdminUsername();
     fetchAllUsernames();
+    fetchAppointments();
+    calculateTotalRevenue();
     DateTime now = DateTime.now();
     startDate = DateTime(now.year, now.month, now.day);
     endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
@@ -75,6 +84,21 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
       });
     } catch (e) {
       print("Error fetching usernames: $e");
+    }
+  }
+
+  void fetchAppointments() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('appointments').get();
+      setState(() {
+        appointments = snapshot.docs
+            .map((doc) => {...doc.data() as Map<String, dynamic>, 'id': doc.id})
+            .toList();
+        calculateTotalRevenue(); // calculate after loading
+      });
+    } catch (e) {
+      print('Error fetching appointments: $e');
     }
   }
 
@@ -152,6 +176,102 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
       );
     }
   } 
+
+  void calculateTotalRevenue() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('transactions')
+          .where('timestamp', isGreaterThanOrEqualTo: startTimestamp)
+          .where('timestamp', isLessThanOrEqualTo: endTimestamp)
+          .get();
+
+      double sum = 0;
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final amount = double.tryParse(data['amount']?.toString() ?? '0') ?? 0;
+        sum += amount;
+      }
+
+      setState(() {
+        totalRevenue = sum;
+      });
+    } catch (e) {
+      print("Error calculating revenue: $e");
+    }
+  }
+
+  Future<void> exportToPdf() async {
+    final pdf = pw.Document();
+
+    final transactionSnapshot = await FirebaseFirestore.instance
+        .collection('transactions')
+        .get();
+
+    List<List<String>> rows = [
+      ['Name', 'Date', 'Time', 'Doctor', 'Price', 'Payment', 'Symptom']
+    ];
+
+    for (var doc in transactionSnapshot.docs) {
+      final tx = doc.data();
+      final appointmentId = tx['appointmentId'];
+      final userId = tx['userId'];
+      final paymentMethod = tx['paymentMethod'] ?? '-';
+      final amount = tx['amount']?.toString() ?? '0';
+
+      // Default fallbacks
+      String name = 'Unknown';
+      String date = '-';
+      String time = '-';
+      String doctor = '-';
+      String symptom = '-';
+
+      // Get user name
+      name = _usernameCache[userId] ?? 'Unknown';
+
+      // Fetch linked appointment
+      if (appointmentId != null) {
+        final appointmentDoc = await FirebaseFirestore.instance
+            .collection('Appointments')
+            .doc(appointmentId)
+            .get();
+
+        if (appointmentDoc.exists) {
+          final appointment = appointmentDoc.data()!;
+          date = appointment['date'] ?? '-';
+          time = appointment['time'] ?? '-';
+          doctor = appointment['doctorName'] ?? '-';
+          symptom = appointment['symptom'] ?? '-';
+        }
+      }
+
+      rows.add([
+        name,
+        date,
+        time,
+        doctor,
+        'RM $amount',
+        paymentMethod,
+        symptom
+      ]);
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        build: (pw.Context context) => [
+          pw.Text('Appointments Report',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 20),
+          pw.Table.fromTextArray(data: rows),
+        ],
+      ),
+    );
+
+    final output = await getExternalStorageDirectory();
+    final file = File('${output!.path}/Appointments_Report.pdf');
+    await file.writeAsBytes(await pdf.save());
+
+    await OpenFile.open(file.path);
+  }
 
   @override
   Widget build (BuildContext context) {
@@ -313,11 +433,59 @@ class _TransactionHistoryPage extends State<TransactionHistoryPage> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: buildDateSelector("Start Date", startDate, (val) => setState(() => startDate = val))),
-                SizedBox(width: 10),
-                Expanded(child: buildDateSelector("End Date", endDate, (val) => setState(() => endDate = val))),
+                Row(
+                  children: [
+                    Expanded(
+                      child: buildDateSelector("Start Date", startDate, (val) {
+                        setState(() {
+                          startDate = val;
+                          startTimestamp = Timestamp.fromDate(DateTime(val.year, val.month, val.day));
+                          calculateTotalRevenue();
+                        });
+                      }),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: buildDateSelector("End Date", endDate, (val) {
+                        setState(() {
+                          endDate = val;
+                          endTimestamp = Timestamp.fromDate(DateTime(val.year, val.month, val.day, 23, 59, 59));
+                          calculateTotalRevenue();
+                        });
+                      }),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Card(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 4,
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Total Revenue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 8),
+                              Text("RM ${totalRevenue.toStringAsFixed(2)}", style: TextStyle(fontSize: 24, color: Colors.green)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.download),
+                      onPressed: exportToPdf,
+                      tooltip: "Export All Appointments to Excel",
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

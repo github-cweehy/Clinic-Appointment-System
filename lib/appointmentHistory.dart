@@ -80,18 +80,22 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
           border: Border.all(color: Colors.grey.shade300),
         ),
         child: 
-        Row(
-          children: [
-            Text(
-              DateFormat('dd MMMM yyyy').format(selectedDate ?? DateTime.now())
-            ),
-            SizedBox(width: 58),
-            Icon(
-              Icons.calendar_month,
-              color: Colors.grey.shade600,
-            )
-          ],
-        ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  DateFormat('dd MMMM yyyy').format(selectedDate ?? DateTime.now()),
+                  style: TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                Icons.calendar_month,
+                color: Colors.grey.shade600,
+              ),
+            ],
+          ),
       ),
     );
   }

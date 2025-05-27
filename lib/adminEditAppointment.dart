@@ -79,17 +79,16 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.grey.shade300),
         ),
-        child: 
-        Row(
+        child: Row(
           children: [
-            Text(
-              DateFormat('dd MMMM yyyy').format(selectedDate ?? DateTime.now())
+            Expanded(
+              child: Text(
+                DateFormat('dd MMM yyyy').format(selectedDate ?? DateTime.now()),
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 15),
+              ),
             ),
-            SizedBox(width: 58),
-            Icon(
-              Icons.calendar_month,
-              color: Colors.grey.shade600,
-            )
+            Icon(Icons.calendar_month, color: Colors.grey.shade600),
           ],
         ),
       ),
@@ -155,7 +154,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                         context: context,
                         builder: (context) => AlertDialog(
                           title: Text("Complete Appointment?"),
-                          content: Text("Are you sure you want to complete this appointment?"),
+                          content: Text("Are you sure you want to mark this appointment as completed?"),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
@@ -165,11 +164,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                               onPressed: () async {
                                 Navigator.of(context).pop();
                                 await FirebaseFirestore.instance
-                                  .collection('Appointments')
-                                  .doc(appointment['id'])
-                                  .update({'status': 'completed'});
-
-                                  setState(() {});                                                       
+                                    .collection('Appointments')
+                                    .doc(appointment['id'])
+                                    .update({'status': 'completed'});
+                                setState(() {});                                                       
                               },
                               child: Text("Yes"),
                             ),
@@ -185,7 +183,42 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
                   ),
                 ),
                 SizedBox(width: 12),
-              ],
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text("Cancel Appointment?"),
+                          content: Text("Are you sure you want to cancel this appointment?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text("No"),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.of(context).pop();
+                                await FirebaseFirestore.instance
+                                    .collection('Appointments')
+                                    .doc(appointment['id'])
+                                    .update({'status': 'cancelled'});
+                                setState(() {});                                                       
+                              },
+                              child: Text("Yes"),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text("Cancel", style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ]
             ],
           )
         ],

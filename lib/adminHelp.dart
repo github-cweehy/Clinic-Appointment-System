@@ -238,6 +238,84 @@ class _UserHelpPage extends State<UserHelpPage> {
     }
   } 
 
+  Widget buildHelpCard(Map<String, dynamic> message) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.blue.shade100,
+                child: Icon(Icons.person, color: Colors.blue),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message['username'] ?? 'User',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.email, size: 16, color: Colors.grey),
+                        SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            message['email'] ?? 'N/A',
+                            style: TextStyle(fontSize: 13, color: Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                (message['timestamp'] as String?) ?? 'N/A',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              )
+            ],
+          ),
+          SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.help_outline, size: 30, color: Colors.deepPurple),
+              SizedBox(width: 20),
+              Expanded(
+                child: Text( "Problem: \n" + message['problem'] ?? 'No message',
+                  style: TextStyle(fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -395,14 +473,14 @@ class _UserHelpPage extends State<UserHelpPage> {
           children: [
             Row(
               children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios, color: Colors.black),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                Icon(
+                  Icons.help_center_rounded, 
+                  color: Colors.blue,
+                  size: 30,
                 ),
-                const Text(
-                  "Help",
+                SizedBox(width: 15),
+                Text(
+                  "Help Messages",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -410,7 +488,7 @@ class _UserHelpPage extends State<UserHelpPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -449,114 +527,50 @@ class _UserHelpPage extends State<UserHelpPage> {
                     ),
                   ],
                 ),
-
                 //End Date
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(left: 10.0),
-                    child: Text("End Date", style: TextStyle(fontSize: 13)),
-                  ),
-                  GestureDetector(
-                    onTap: () => selectDate(context, false),
-                    child: Container(
-                      width: 185,
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade400),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.calendar_month, color: Colors.grey, size: 20),
-                          const SizedBox(width: 5),
-                          //Text
-                          Text(
-                              "${endDate.day} ${_monthName(endDate.month)} ${endDate.year}",
-                              style: TextStyle(color: Colors.black, fontSize: 13.5),
-                            ),
-                        ],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 10.0),
+                      child: Text("End Date", style: TextStyle(fontSize: 13)),
+                    ),
+                    GestureDetector(
+                      onTap: () => selectDate(context, false),
+                      child: Container(
+                        width: 185,
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.shade400),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.calendar_month, color: Colors.grey, size: 20),
+                            const SizedBox(width: 5),
+                            //Text
+                            Text(
+                                "${endDate.day} ${_monthName(endDate.month)} ${endDate.year}",
+                                style: TextStyle(color: Colors.black, fontSize: 13.5),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ]),
-            const SizedBox(height: 8),
+                  ],
+                ),
+              ]
+            ),
+            const SizedBox(height: 15),
             Expanded(
               child: ListView.builder(
                 itemCount: helpMessages.length,
                 itemBuilder: (context, index){
-                  final message = helpMessages[index];
-
-                  var username = message['username'];
-                  var problem = message['problem'];
-                  var email = message['email'];
-                  var timestamp = message['timestamp'];
-
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue, width: 1.0),
-                    ),
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Icon(Icons.person, color: Colors.white, size: 22),
-                              const SizedBox(width: 6),
-                              Text(
-                                username,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                timestamp,
-                                style: TextStyle(fontSize: 13, color: Colors.white),
-                              ),
-                              const SizedBox(height: 2),
-                            ],
-                          ),
-                          const SizedBox(height: 1),
-                          Row(
-                            children: [
-                              const Icon(Icons.email, color: Colors.white, size: 20),
-                              const SizedBox(width: 6),
-                              Text(
-                                email,
-                                style: TextStyle(fontSize: 14, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 15),
-                          Row(
-                            children: [
-                              const Icon(Icons.help, color: Colors.white, size: 20),
-                              const SizedBox(width: 6),
-                              Text(
-                                problem,
-                                 style: const TextStyle(fontSize: 15, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+                    final message = helpMessages[index];
+                    return buildHelpCard(message);
                 }
               )
             ),
