@@ -50,6 +50,8 @@ https://docs.flutter.dev/get-started/install/windows/mobile
 
 # Firebase (Database)
 Firebase Link: https://console.firebase.google.com/project/clinic-appointment-syste-2e668/overview
+Account : ClinicAppointmentManagement@gmail.com
+Password : clinicappointment6223
 
 
 
