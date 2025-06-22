@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'adminCustomerList.dart';
 import 'adminEditAppointment.dart';
 import 'adminHelp.dart';
@@ -110,6 +111,19 @@ class _AdminMainPageState extends State<AdminMainPage> {
         }
       }
 
+      // Sort filteredToday by full datetime (date + time)
+      filteredToday.sort((a, b) {
+        try {
+          final dateA = DateFormat('yyyy-MM-dd hh:mm a')
+              .parse('${a['date']} ${a['timeSlot'] ?? a['time']}');
+          final dateB = DateFormat('yyyy-MM-dd hh:mm a')
+              .parse('${b['date']} ${b['timeSlot'] ?? b['time']}');
+          return dateA.compareTo(dateB);
+        } catch (_) {
+          return 0; 
+        }
+      });
+
       setState(() {
         appointmentHistory = filteredToday;
         totalAppointmentsToday = filteredToday.length;
@@ -170,10 +184,18 @@ class _AdminMainPageState extends State<AdminMainPage> {
           ),
           SizedBox(height: 10),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.sick_rounded, size: 18, color: Colors.black54),
               SizedBox(width: 6),
-              Text("Symptom: $symptom", style: TextStyle(fontSize: 16)),
+              Expanded(
+                child: Text(
+                  "Symptom: $symptom",
+                  style: TextStyle(fontSize: 16),
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
+                ),
+              ),
             ],
           ),
         ],

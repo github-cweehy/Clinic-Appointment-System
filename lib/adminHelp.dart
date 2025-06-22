@@ -23,6 +23,7 @@ class UserHelpPage extends StatefulWidget {
 class _UserHelpPage extends State<UserHelpPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String admin_username = '';
+  bool isDateFilterApplied = false;
 
   DateTime? selectedDate;
   DateTime startDate = DateTime.now();
@@ -32,6 +33,7 @@ class _UserHelpPage extends State<UserHelpPage> {
   List<Map<String, dynamic>> usersData = [];
 
   final Map<String, String> _usernameCache = {};
+
   Future<String> _fetchUsername(String userId) async{
     if(_usernameCache.containsKey(userId)){
       return _usernameCache[userId]!;
@@ -125,7 +127,6 @@ class _UserHelpPage extends State<UserHelpPage> {
       setState(() {
         if (isStartDate) {
           startDate = DateTime(picked.year, picked.month, picked.day); 
-          
           if (endDate.isBefore(startDate)) {
             endDate = DateTime(startDate.year, startDate.month, startDate.day, 23, 59, 59); 
           }
@@ -136,6 +137,7 @@ class _UserHelpPage extends State<UserHelpPage> {
             startDate = DateTime(endDate.year, endDate.month, endDate.day); 
           }
         }
+        isDateFilterApplied = true;
       });
       fetchHelpMessages();
     }
@@ -566,13 +568,17 @@ class _UserHelpPage extends State<UserHelpPage> {
             ),
             const SizedBox(height: 15),
             Expanded(
-              child: ListView.builder(
-                itemCount: helpMessages.length,
-                itemBuilder: (context, index){
-                    final message = helpMessages[index];
-                    return buildHelpCard(message);
-                }
-              )
+              child: isDateFilterApplied
+                  ? (helpMessages.isEmpty
+                      ? Center(child: Text("No help messages for the selected date range."))
+                      : ListView.builder(
+                          itemCount: helpMessages.length,
+                          itemBuilder: (context, index) {
+                            final message = helpMessages[index];
+                            return buildHelpCard(message);
+                          },
+                        ))
+                  : Center(child: Text("Please select a date range to view help messages.")),
             ),
           ],
         ),

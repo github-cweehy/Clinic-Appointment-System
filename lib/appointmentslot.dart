@@ -151,19 +151,36 @@ class AppointmentslotState extends State <Appointmentslot> {
                   runSpacing: 10,
                   children: allSlots.map((slot) {
                     final isBooked = bookedSlots.contains(slot);
+                    // final isSelected = slot == selectedSlot;
+                    final isToday = selectedDay != null && isSameDay(selectedDay, DateTime.now());
+                    
+                    // Parse slot time to DateTime
+                    final slotTime = DateFormat('hh:mm a').parse(slot);
+                    final now = DateTime.now();
+                  
+                    // Create a DateTime object with today's date and slot time
+                    final slotDateTime = DateTime(
+                      selectedDay!.year,
+                      selectedDay!.month,
+                      selectedDay!.day,
+                      slotTime.hour,
+                      slotTime.minute,
+                    );
+
+                    final isPast = isToday && slotDateTime.isBefore(now);
+                    final isDisabled = isBooked || isPast;
                     final isSelected = slot == selectedSlot;
-                
                     return ChoiceChip(
                       label: Text(slot),
                       selected: isSelected,
-                      onSelected: isBooked ? null : (_) {
+                      onSelected: isDisabled ? null : (_) {
                         setState(() => selectedSlot = slot);
                       },
                       selectedColor: Colors.blue,
                       disabledColor: Colors.grey.shade400,
                       labelStyle: TextStyle(
-                        color: isBooked 
-                            ? Colors.white 
+                        color: isDisabled
+                            ? Colors.white
                             : (isSelected ? Colors.white : Colors.black),
                       ),
                     );
@@ -182,9 +199,27 @@ class AppointmentslotState extends State <Appointmentslot> {
                     onPressed: selectedSlot == null ? null : () async {
                       try {
                         final DateFormat dateFormatter = DateFormat('yyyy-MM-dd');
-                        final String formattedDate = dateFormatter.format(selectedDate);
+                        final String formattedDate = dateFormatter.format(selectedDay!);
                         final String slotToSend = selectedSlot!;
-                
+
+                        // Check for existing appointments at the same date and time for this user
+                        final conflictSnapshot = await firestore
+                            .collection('Appointments')
+                            .where('userId', isEqualTo: widget.userId)
+                            .where('date', isEqualTo: formattedDate)
+                            .where('time', isEqualTo: slotToSend)
+                            .where('status', isEqualTo: 'upcoming') 
+                            .get();
+
+                        if (conflictSnapshot.docs.isNotEmpty) {
+                          // Conflict found: user already has an appointment at this date and time
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('You already have an appointment at this time. Please choose another slot.')),
+                          );
+                          return; 
+                        }
+
+                        // No conflict — navigate to confirmation page
                         Navigator.pushReplacement(
                           context, 
                           MaterialPageRoute(

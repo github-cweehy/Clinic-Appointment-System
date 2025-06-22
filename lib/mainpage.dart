@@ -47,6 +47,7 @@ class _MainPageState extends State<MainPage> {
       final querySnapshot = await _firestore
           .collection('Appointments')
           .where('userId', isEqualTo: widget.userId) 
+          .where('status', isEqualTo: 'upcoming')
           .get();
 
       final List<Map<String, dynamic>> fetchedHistory = [];
@@ -80,6 +81,13 @@ class _MainPageState extends State<MainPage> {
       }
 
       setState(() {
+        // Sort appointments by parsed datetime
+        fetchedHistory.sort((a, b) {
+          final dateA = DateFormat('yyyy-MM-dd hh:mm a').parse('${a['date']} ${a['timeSlot'] ?? a['time']}');
+          final dateB = DateFormat('yyyy-MM-dd hh:mm a').parse('${b['date']} ${b['timeSlot'] ?? b['time']}');
+          return dateA.compareTo(dateB);
+        });
+
         appointmentHistory = fetchedHistory;
       });
     } catch (e) {

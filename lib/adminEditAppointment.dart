@@ -25,12 +25,18 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
   late TabController tabController;
   DateTime? startDate;
   DateTime? endDate;
-
+  DateTime? selectedDate;
+  String searchQuery = '';
+  List<Map<String, dynamic>> allAppointments = [];
+  List<Map<String, dynamic>> filteredAppointments = [];
+  final Map<String, String> _usernameCache = {};
+  final Set<String> availableDates = {};
 
   @override
   void initState() {
     super.initState();
     fetchUsername();
+    fetchAvailableDates();
     tabController = TabController(length: 3, vsync: this);
     startDate = DateTime.now();
     endDate = DateTime.now();
@@ -47,52 +53,63 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchAppointments(String status) async {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('Appointments')
-          .where('doctorId', isEqualTo: widget.adminId)
-          .where('status', isEqualTo: status)
-          .get();
+  Future<void> fetchAvailableDates() async {
+    final querySnapshot = await _firestore
+        .collection('Appointments')
+        .where('doctorId', isEqualTo: widget.adminId)
+        .get();
 
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
+    availableDates.clear();
+    for (var doc in querySnapshot.docs) {
+      final date = doc['date'];
+      if (date != null) {
+        availableDates.add(date);
+      }
+    }
   }
 
-  Widget buildDateSelector(String label, DateTime? selectedDate, Function(DateTime) onPick) {
-    return InkWell(
-      onTap: () async {
-        final date = await showDatePicker(
-          context: context,
-          initialDate: selectedDate ?? DateTime.now(),
-          firstDate: DateTime(2023),
-          lastDate: DateTime(2030),
-        );
-        if (date != null) onPick(date);
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                DateFormat('dd MMM yyyy').format(selectedDate ?? DateTime.now()),
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 15),
-              ),
-            ),
-            Icon(Icons.calendar_month, color: Colors.grey.shade600),
-          ],
-        ),
-      ),
-    );
+  Future<List<Map<String, dynamic>>> fetchAppointments(String status) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('Appointments')
+        .where('doctorId', isEqualTo: widget.adminId)
+        .where('status', isEqualTo: status)
+        .get();
+
+    List<Map<String, dynamic>> appointments = [];
+
+    for (var doc in querySnapshot.docs) {
+      final data = doc.data();
+      final date = data['date'];
+      if (date != null) availableDates.add(date);
+      final userId = data['userId'];
+      String username = 'Unknown';
+      if (_usernameCache.containsKey(userId)) {
+        username = _usernameCache[userId]!;
+      } else {
+        final userDoc = await _firestore.collection('users').doc(userId).get();
+        if (userDoc.exists) {
+          username = userDoc['username'] ?? 'Unknown';
+          _usernameCache[userId] = username;
+        }
+      }
+
+      data['username'] = username;
+      data['id'] = doc.id;
+      appointments.add(data);
+    }
+
+    // Sort by date + time
+    appointments.sort((a, b) {
+      try {
+        final dateTimeA = DateFormat('yyyy-MM-dd hh:mm a').parse('${a['date']} ${a['timeSlot'] ?? a['time']}');
+        final dateTimeB = DateFormat('yyyy-MM-dd hh:mm a').parse('${b['date']} ${b['timeSlot'] ?? b['time']}');
+        return dateTimeA.compareTo(dateTimeB);
+      } catch (e) {
+        return 0;
+      }
+    });
+
+    return appointments;
   }
 
   Widget buildAppointmentCard(Map<String, dynamic> appointment) {
@@ -230,12 +247,36 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: fetchAppointments(status),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return Center(child: Text("No $status appointments"));
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return Center(child: CircularProgressIndicator());
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty)
+          return Center(child: Text("No $status appointments"));
+
+        List<Map<String, dynamic>> appointments = snapshot.data!;
+        appointments = appointments.where((appointment) {
+          final username = appointment['username'].toLowerCase();
+          final matchesSearch = username.contains(searchQuery);
+
+          final dateStr = appointment['date'] ?? '';
+          if (selectedDate != null) {
+            try {
+              final apptDate = DateFormat('yyyy-MM-dd').parse(dateStr);
+              final matchesDate = apptDate.year == selectedDate!.year &&
+                                  apptDate.month == selectedDate!.month &&
+                                  apptDate.day == selectedDate!.day;
+              return matchesSearch && matchesDate;
+            } catch (_) {
+              return false;
+            }
+          }
+
+          return matchesSearch;
+        }).toList();
 
         return ListView(
           padding: EdgeInsets.all(16),
-          children: snapshot.data!.map((data) => buildAppointmentCard(data)).toList(),
+          children: appointments.map((data) => buildAppointmentCard(data)).toList(),
         );
       },
     );
@@ -428,18 +469,80 @@ class _AppointmentsPageState extends State<AppointmentsPage> with SingleTickerPr
           ),
           SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                    child: buildDateSelector("Start Date", startDate, (val) => setState(() => startDate = val))),
-                SizedBox(width: 10),
-                Expanded(
-                    child: buildDateSelector("End Date", endDate, (val) => setState(() => endDate = val))),
-              ],
+            padding: EdgeInsets.all(16),
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.toLowerCase();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search by patient name...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
             ),
           ),
-          SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: InkWell(
+              onTap: () async {
+                DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate ?? DateTime.now(),
+                  firstDate: DateTime(2023),
+                  lastDate: DateTime(2030),
+                  selectableDayPredicate: (DateTime day) {
+                    String formatted = DateFormat('yyyy-MM-dd').format(day);
+                    return availableDates.contains(formatted);
+                  },
+                );
+                if (picked != null) {
+                  final pickedStr = DateFormat('yyyy-MM-dd').format(picked);
+                  if (!availableDates.contains(pickedStr)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('No appointments on selected date.')),
+                    );
+                    return;
+                  }
+                  setState(() {
+                    selectedDate = picked;
+                  });
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        selectedDate == null
+                            ? 'Filter by Date'
+                            : DateFormat('dd MMM yyyy').format(selectedDate!),
+                        style: TextStyle(fontSize: 15),
+                      ),
+                    ),
+                    Icon(Icons.calendar_month, color: Colors.grey.shade600),
+                    
+                    if (selectedDate != null)
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            selectedDate = null;
+                          });
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: TabBarView(
               controller: tabController,

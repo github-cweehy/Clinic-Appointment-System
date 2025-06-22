@@ -120,7 +120,6 @@ class _LoginPageState extends State<LoginPage> {
                     labelText: 'New Password',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
                     ),
                   ),
                   validator: (value) {

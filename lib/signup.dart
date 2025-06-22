@@ -81,7 +81,6 @@ class _SignUpPageState extends State<SignUpPage> {
           'phone_number': phoneNumber,
           'password': password,
           'profile_picture': null,
-          'allergic': null,
         });
 
         // Navigate to the LoginPage

@@ -25,15 +25,15 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
   late TabController tabController;
   DateTime? startDate;
   DateTime? endDate;
-
-
+  DateTime? selectedDate;
+  final Set<String> availableDates = {};
+  
   @override
   void initState() {
     super.initState();
     fetchUsername();
+    fetchAvailableDates();
     tabController = TabController(length: 3, vsync: this);
-    startDate = DateTime.now();
-    endDate = DateTime.now();
   }
 
   Future<void> fetchUsername() async {
@@ -47,58 +47,63 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
     }
   }
 
+
+  Future<void> fetchAvailableDates() async {
+    final snapshot = await _firestore
+        .collection('Appointments')
+        .where('userId', isEqualTo: widget.userId)
+        .get();
+
+    availableDates.clear();
+    for (var doc in snapshot.docs) {
+      final date = doc['date'];
+      if (date != null) availableDates.add(date);
+    }
+    setState(() {});
+  }
+
   Future<List<Map<String, dynamic>>> fetchAppointments(String status) async {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('Appointments')
-          .where('userId', isEqualTo: widget.userId)
-          .where('status', isEqualTo: status)
-          .get();
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('Appointments')
+        .where('userId', isEqualTo: widget.userId)
+        .where('status', isEqualTo: status)
+        .get();
 
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
+    List<Map<String, dynamic>> appointments = querySnapshot.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return data;
+    }).toList();
+
+    if (selectedDate != null) {
+      appointments = appointments.where((appt) {
+        try {
+          final apptDate = DateFormat('yyyy-MM-dd').parse(appt['date']);
+          return apptDate.year == selectedDate!.year &&
+                apptDate.month == selectedDate!.month &&
+                apptDate.day == selectedDate!.day;
+        } catch (_) {
+          return false;
+        }
       }).toList();
+    }
+
+    // Sort by datetime
+    appointments.sort((a, b) {
+      try {
+        final dateTimeA = DateFormat('yyyy-MM-dd hh:mm a')
+            .parse('${a['date']} ${a['timeSlot'] ?? a['time']}');
+        final dateTimeB = DateFormat('yyyy-MM-dd hh:mm a')
+            .parse('${b['date']} ${b['timeSlot'] ?? b['time']}');
+        return dateTimeA.compareTo(dateTimeB);
+      } catch (_) {
+        return 0;
+      }
+    });
+
+    return appointments;
   }
 
-  Widget buildDateSelector(String label, DateTime? selectedDate, Function(DateTime) onPick) {
-    return InkWell(
-      onTap: () async {
-        final date = await showDatePicker(
-          context: context,
-          initialDate: selectedDate ?? DateTime.now(),
-          firstDate: DateTime(2023),
-          lastDate: DateTime(2030),
-        );
-        if (date != null) onPick(date);
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  DateFormat('dd MMMM yyyy').format(selectedDate ?? DateTime.now()),
-                  style: TextStyle(fontSize: 14),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Icon(
-                Icons.calendar_month,
-                color: Colors.grey.shade600,
-              ),
-            ],
-          ),
-      ),
-    );
-  }
 
   Widget buildAppointmentCard(Map<String, dynamic> appointment) {
     String doctor = appointment['doctorName'] ?? 'Unknown';
@@ -108,7 +113,7 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
     double price = appointment['price']?.toDouble() ?? 0;
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -177,7 +182,7 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
+                      backgroundColor: Colors.red,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Text("Cancel", style: TextStyle(color: Colors.white)),
@@ -218,12 +223,16 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: fetchAppointments(status),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return Center(child: Text("No $status appointments"));
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No $status appointments."));
+        }
 
         return ListView(
-          padding: EdgeInsets.all(16),
-          children: snapshot.data!.map((data) => buildAppointmentCard(data)).toList(),
+          padding: EdgeInsets.only(bottom: 16),
+          children: snapshot.data!.map(buildAppointmentCard).toList(),
         );
       },
     );
@@ -398,14 +407,62 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
           SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                    child: buildDateSelector("Start Date", startDate, (val) => setState(() => startDate = val))),
-                SizedBox(width: 10),
-                Expanded(
-                    child: buildDateSelector("End Date", endDate, (val) => setState(() => endDate = val))),
-              ],
+            child: InkWell(
+              onTap: () async {
+                DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate ?? DateTime.now(),
+                  firstDate: DateTime(2023),
+                  lastDate: DateTime(2030),
+                  selectableDayPredicate: (DateTime day) {
+                    String formatted = DateFormat('yyyy-MM-dd').format(day);
+                    return availableDates.contains(formatted);
+                  },
+                );
+                if (picked != null) {
+                  final pickedStr = DateFormat('yyyy-MM-dd').format(picked);
+                  if (!availableDates.contains(pickedStr)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('No appointments on selected date.')),
+                    );
+                    return;
+                  }
+                  setState(() {
+                    selectedDate = picked;
+                  });
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        selectedDate == null
+                            ? 'Filter by Date'
+                            : DateFormat('dd MMM yyyy').format(selectedDate!),
+                        style: TextStyle(fontSize: 15),
+                      ),
+                    ),
+                    Icon(Icons.calendar_month, color: Colors.grey.shade600),
+                    
+                    if (selectedDate != null)
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            selectedDate = null;
+                          });
+                        },
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           SizedBox(height: 10),
