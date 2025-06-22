@@ -253,6 +253,21 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
     }
   }
 
+  DateTime getInitialSelectableDate() {
+    if (selectedDate != null &&
+        availableDates.contains(DateFormat('yyyy-MM-dd').format(selectedDate!))) {
+      return selectedDate!;
+    }
+
+    for (String dateStr in availableDates) {
+      try {
+        return DateFormat('yyyy-MM-dd').parse(dateStr);
+      } catch (_) {}
+    }
+
+    return DateTime.now();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -411,7 +426,7 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
               onTap: () async {
                 DateTime? picked = await showDatePicker(
                   context: context,
-                  initialDate: selectedDate ?? DateTime.now(),
+                  initialDate: getInitialSelectableDate(),
                   firstDate: DateTime(2023),
                   lastDate: DateTime(2030),
                   selectableDayPredicate: (DateTime day) {
